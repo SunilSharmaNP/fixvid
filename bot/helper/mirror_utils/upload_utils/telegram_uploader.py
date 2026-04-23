@@ -6,7 +6,7 @@ from logging import getLogger
 from natsort import natsorted
 from os import path as ospath, walk
 from PIL import Image
-from pyrogram.errors import FloodWait, RPCError
+from pyrogram.errors import FloodWait, RPCError, PeerIdInvalid, ChannelInvalid
 from pyrogram.types import InputMediaVideo, InputMediaDocument, InputMediaPhoto, Message
 from re import match as re_match
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type, RetryError
@@ -343,12 +343,38 @@ class TgUploader:
     async def _msg_to_reply(self):
         if self._leech_log and self._leech_log != self._listener.message.chat.id:
             caption = f'<b>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n{self._listener.name}\n▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</b>'
-            if self._thumb and await aiopath.exists(self._thumb):
-                self._send_msg: Message = await bot.send_photo(self._leech_log, photo=self._thumb, caption=caption)
-            else:
-                self._send_msg: Message = await bot.send_message(self._leech_log, caption, disable_web_page_preview=True)
+            # Warm up Pyrogram peer cache to avoid PeerIdInvalid on dump/log channel.
+            # If the bot was restarted and hasn't seen any update from this chat yet,
+            # sending directly to its ID throws PeerIdInvalid. Calling get_chat()
+            # forces resolve_peer() and caches the peer for the rest of the session.
+            for attempt in range(2):
+                try:
+                    await bot.get_chat(self._leech_log)
+                    break
+                except (PeerIdInvalid, ChannelInvalid) as e:
+                    LOGGER.warning('LEECH_LOG peer not resolved (%s), retry %s/2', e, attempt + 1)
+                    await sleep(2)
+                except Exception as e:
+                    LOGGER.warning('LEECH_LOG get_chat failed: %s', e)
+                    break
+            try:
+                if self._thumb and await aiopath.exists(self._thumb):
+                    self._send_msg: Message = await bot.send_photo(self._leech_log, photo=self._thumb, caption=caption)
+                else:
+                    self._send_msg: Message = await bot.send_message(self._leech_log, caption, disable_web_page_preview=True)
+            except (PeerIdInvalid, ChannelInvalid) as e:
+                LOGGER.error('LEECH_LOG (%s) PeerIdInvalid: %s. Falling back to current chat. '
+                             'Make sure the bot is added to the LEECH_LOG channel as admin.',
+                             self._leech_log, e)
+                self._send_msg: Message = await bot.get_messages(self._listener.message.chat.id, self._listener.mid)
+                if not self._send_msg or not self._send_msg.chat:
+                    self._send_msg = self._listener.message
+                return
             if config_dict['LEECH_INFO_PIN']:
-                await self._send_msg.pin(both_sides=True)
+                try:
+                    await self._send_msg.pin(both_sides=True)
+                except Exception as e:
+                    LOGGER.warning('LEECH_INFO_PIN failed: %s', e)
         else:
             self._send_msg: Message = await bot.get_messages(self._listener.message.chat.id, self._listener.mid)
             if not self._send_msg or not self._send_msg.chat:
