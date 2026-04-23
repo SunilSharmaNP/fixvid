@@ -40,67 +40,81 @@ async def get_user_settings(from_user, data: str, uset_data: str):
     image = None
 
     if not data:
-        sendpm, buttonkey = ('ENABLE 🔥', '🔥 Send PM') if user_dict.get('enable_pm') else ('DISABLE', 'Send PM')
-        buttons.button_data(buttonkey, f'userset {user_id} enable_pm')
+        # ---- helpers for status badges (clean ON/OFF / SET/UNSET) ----
+        ON, OFF, SET, UNSET = '✅ ON', '❌ OFF', '✅ SET', '❌ UNSET'
 
-        sendss, buttonkey = ('ENABLE 🔥', '🔥 Screenshot') if user_dict.get('enable_ss') else ('DISABLE', 'Screenshot')
-        buttons.button_data(buttonkey, f'userset {user_id} enable_ss')
+        sendpm = ON if user_dict.get('enable_pm') else OFF
+        buttons.button_data(f'{"✅" if user_dict.get("enable_pm") else "📩"} Send PM', f'userset {user_id} enable_pm')
+
+        sendss = ON if user_dict.get('enable_ss') else OFF
+        buttons.button_data(f'{"✅" if user_dict.get("enable_ss") else "📸"} Screenshot', f'userset {user_id} enable_ss')
 
         AD = config_dict['AS_DOCUMENT']
-        ltype, buttonkey = ('DOCUMENT', '🔥 As Document') if not user_dict and AD or user_dict.get('as_doc') else ('MEDIA', 'As Document')
-        buttons.button_data(buttonkey, f'userset {user_id} as_doc')
+        is_doc = (not user_dict and AD) or user_dict.get('as_doc')
+        ltype = '📄 DOCUMENT' if is_doc else '🎞️ MEDIA'
+        buttons.button_data(f'{"✅" if is_doc else "📄"} As Document', f'userset {user_id} as_doc')
 
         MG = config_dict['MEDIA_GROUP']
-        mediagroup, buttonkey = ('ENABLE 🔥', '🔥 As Group') if user_dict.get('media_group') or 'media_group' not in user_dict and MG else ('DISABLE', 'As Group')
-        buttons.button_data(buttonkey, f'userset {user_id} media_group')
+        is_mg = user_dict.get('media_group') or ('media_group' not in user_dict and MG)
+        mediagroup = ON if is_mg else OFF
+        buttons.button_data(f'{"✅" if is_mg else "🗂️"} As Group', f'userset {user_id} media_group')
 
-        premsg, buttonkey = (prename, '🔥 Prename') if (prename := user_dict.get('prename')) else ('NOT SET', 'Prename')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata prename')
+        prename = user_dict.get('prename')
+        premsg = f'<code>{prename}</code>' if prename else UNSET
+        buttons.button_data(f'{"✅" if prename else "🔠"} Prename', f'userset {user_id} setdata prename')
 
-        sufmsg, buttonkey = (sufname, '🔥 Sufname') if (sufname := user_dict.get('sufname')) else ('NOT SET', 'Sufname')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata sufname')
+        sufname = user_dict.get('sufname')
+        sufmsg = f'<code>{sufname}</code>' if sufname else UNSET
+        buttons.button_data(f'{"✅" if sufname else "🔡"} Sufname', f'userset {user_id} setdata sufname')
 
-        rmmsg, buttonkey = ('ENABLE 🔥', '🔥 Remname') if user_dict.get('remname') else ('DISABLE', 'Remname')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata remname')
+        rmmsg = ON if user_dict.get('remname') else OFF
+        buttons.button_data(f'{"✅" if user_dict.get("remname") else "🧹"} Remname', f'userset {user_id} setdata remname')
 
-        thumbmsg, buttonkey = ('EXISTS 🔥', '🔥 Thumbnail') if await aiopath.exists(thumbpath) else ('NOT SET', 'Thumbnail')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata thumb')
+        has_thumb = await aiopath.exists(thumbpath)
+        thumbmsg = SET if has_thumb else UNSET
+        buttons.button_data(f'{"✅" if has_thumb else "🖼️"} Thumbnail', f'userset {user_id} setdata thumb')
 
-        dumpch, buttonkey = (f'<code>{user_dict.get("dump_ch")}</code>', '🔥 Dump CH') if user_dict.get('dump_ch') else ('<b>NOT SET</b>', 'Dump CH')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata dump_ch')
+        dch = user_dict.get('dump_ch')
+        dumpch = f'<code>{dch}</code>' if dch else UNSET
+        buttons.button_data(f'{"✅" if dch else "📥"} Dump CH', f'userset {user_id} setdata dump_ch')
 
-        gdxmsg, buttonkey = ('EXISTS 🔥', '🔥 Custom GDX') if await aiopath.exists(token_pickle) else ('NOT SET', 'Custom GDX')
-        buttons.button_data(buttonkey, f'userset {user_id} gdtool')
+        has_gdx = await aiopath.exists(token_pickle)
+        gdxmsg = SET if has_gdx else UNSET
+        buttons.button_data(f'{"✅" if has_gdx else "🔑"} Custom GDX', f'userset {user_id} gdtool')
 
-        rccmsg, buttonkey = ('EXISTS 🔥', '🔥 RClone') if await aiopath.exists(rclone_path) else ('NOT SET', 'RClone')
-        buttons.button_data(buttonkey, f'userset {user_id} rctool')
+        has_rcc = await aiopath.exists(rclone_path)
+        rccmsg = SET if has_rcc else UNSET
+        buttons.button_data(f'{"✅" if has_rcc else "☁️"} RClone', f'userset {user_id} rctool')
 
-        metadata, buttonkey = ('ENABLE 🔥', '🔥 Metadata') if user_dict.get('metadata') else ('DISABLE', 'Metadata')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata metadata')
+        metadata = ON if user_dict.get('metadata') else OFF
+        buttons.button_data(f'{"✅" if user_dict.get("metadata") else "🏷️"} Metadata', f'userset {user_id} setdata metadata')
 
         default_upload = user_dict.get('default_upload', '') or config_dict['DEFAULT_UPLOAD']
         du = 'GDrive API' if default_upload == 'gd' else 'RClone'
         dub = 'GDRIVE' if default_upload != 'gd' else 'RCLONE'
-        buttons.button_data(f'Engine {dub}', f'userset {user_id} {default_upload}', 'header')
+        buttons.button_data(f'⚙️ Engine: {dub}', f'userset {user_id} {default_upload}', 'header')
 
         YOPT = config_dict['YT_DLP_OPTIONS']
-        buttonkey = '🔥 YT-DLP'
         if user_dict.get('yt_opt'):
-            yto = f'\n<b><code>{escape(user_dict["yt_opt"])}</code></b>'
+            yto = f'<code>{escape(user_dict["yt_opt"])}</code>'
+            ytset = True
         elif 'yt_opt' not in user_dict and (YOPT := config_dict['YT_DLP_OPTIONS']):
-            yto = f'\n<b><code>{escape(YOPT)}</code></b>'
+            yto = f'<code>{escape(YOPT)}</code>'
+            ytset = True
         else:
-            buttonkey = 'YT-DLP'
-            yto = '<b>NOT SET</b>'
-        buttons.button_data(buttonkey, f'userset {user_id} setdata yt_opt')
+            yto = UNSET
+            ytset = False
+        buttons.button_data(f'{"✅" if ytset else "🎬"} YT-DLP', f'userset {user_id} setdata yt_opt')
 
         capmode = user_dict.get('caption_style', 'mono')
-        buttons.button_data('🔥 Caption' if user_dict.get('captions') else 'Caption', f'userset {user_id} capmode')
+        has_cap = bool(user_dict.get('captions'))
+        buttons.button_data(f'{"✅" if has_cap else "💬"} Caption', f'userset {user_id} capmode')
 
-        buttons.button_data('Zip Mode', f'userset {user_id} zipmode')
+        buttons.button_data('🗜️ Zip Mode', f'userset {user_id} zipmode')
 
-        sesmsg, buttonkey = ('ENABLE 🔥', '🔥 Session String') if user_dict.get('session_string') else ('DISABLE', 'Session String')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata session_string')
+        has_ses = bool(user_dict.get('session_string'))
+        sesmsg = ON if has_ses else OFF
+        buttons.button_data(f'{"✅" if has_ses else "🔐"} Session String', f'userset {user_id} setdata session_string')
 
         if ext_filters := user_dict.get('excluded_extensions'):
             ex_ex = f'<code>{", ".join(ext_filters)}</code>'
@@ -108,46 +122,48 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             ex_ex = f'<code>{", ".join(GLOBAL_EXTENSION_FILTER)}</code>'
         else:
             ex_ex = ''
-        buttons.button_data('🔥 Extensions Filters' if ex_ex else 'Extensions Filters', f'userset {user_id} setdata excluded_extensions')
+        buttons.button_data(f'{"✅" if ex_ex else "🚫"} Extensions Filter', f'userset {user_id} setdata excluded_extensions')
 
-        custom_cap = 'ENABLE 🔥' if user_dict.get('captions') else 'NOT SET'
+        custom_cap = ON if user_dict.get('captions') else UNSET
         if config_dict['PREMIUM_MODE']:
             if (user_premi := is_premium_user(user_id)) and (time_data := user_dict.get('premium_left')):
                 if time_data - time() <= 0:
                     await gather(update_user_ldata(user_id, 'is_premium', False), update_user_ldata(user_id, 'premium_left', 0))
                 else:
-                    premium_left = f'<b>├ </b>Premium Left: <b>{get_readable_time(time_data - time())}</b>\n'
+                    premium_left = f'├ ⏳ <b>Premium Left :</b> <i>{get_readable_time(time_data - time())}</i>\n'
             if user_id != config_dict['OWNER_ID']:
-                status_user = '<b>├ </b>Status: <b>PREMIUM</b>\n' if user_premi else '<b>├ </b>Status: <b>NORMAL</b>\n'
+                status_user = ('├ 💎 <b>Status :</b> <b>PREMIUM</b>\n' if user_premi
+                               else '├ 👤 <b>Status :</b> <b>NORMAL</b>\n')
         if config_dict['DAILY_MODE'] and not is_premium_user(user_id):
             await UserDaily(user_id).get_daily_limit()
-            daily_limit = f'<b>├ </b>Daily Limit: <b>{get_readable_file_size(user_data[user_id]["daily_limit"])}/{config_dict["DAILY_LIMIT_SIZE"]}GB</b>\n'
-            daily_limit += f'<b>├ </b>Reset Time: <b>{get_readable_time(user_data[user_id]["reset_limit"] - time())}</b>\n'
-        text = ('<blockquote><b>USER SETTINGS :-</b>\n\n'
-                f'<code> Settings For: </code> <b>{from_user.mention}</b>\n'
+            daily_limit  = f'├ 📊 <b>Daily Limit :</b> <i>{get_readable_file_size(user_data[user_id]["daily_limit"])} / {config_dict["DAILY_LIMIT_SIZE"]}GB</i>\n'
+            daily_limit += f'├ ⏰ <b>Reset In :</b> <i>{get_readable_time(user_data[user_id]["reset_limit"] - time())}</i>\n'
+        text = ('<blockquote>┌━━━«★彡 <b>USER SETTINGS</b> 彡★»━━━\n'
+                f'├ 👤 <b>User :</b> {from_user.mention}\n'
                 f'{status_user}'
                 f'{premium_left}'
                 f'{daily_limit}'
-                f'<b>┃ Leech Type: </b><i>{ltype}</i>\n'
-                f'<b>┃ As Group: </b><i>{mediagroup}</i>\n'
-                f'<b>┃ Thumbnail: </b><i>{thumbmsg}</i>\n'
-                f'<b>┃ DM Mode: </b><i>{sendpm}</i>\n'
-                f'<b>┃ SS Mode: </b><i>{sendss}</i>\n'
-                f'<b>┃ RClone: </b><i>{rccmsg}</i>\n'
-                f'<b>┃ Caption: </b><i>{capmode.upper()}</i>\n'
-                f'<b>┃ Prename: </b><i>{premsg}</i>\n'
-                f'<b>┃ Sufname: </b><i>{sufmsg}</i>\n'
-                f'<b>┃ Remname: </b><i>{rmmsg}</i>\n'
-                f'<b>┃ Metadata: </b><i>{metadata}</i>\n'
-                f'<b>┃ UserDump/Tds: </b><i>{dumpch}</i>\n'
-                f'<b>┃ Custom GDrive: </b><i>{gdxmsg}</i>\n'
-                f'<b>┃ Custom Caption: </b><i>{custom_cap}</i>\n'
-                f'<b>┃ Session String: </b><i>{sesmsg}</i>\n'
-                f'<b>┃ Default Upload: </b><i>{du}</i>\n'
-                f'<b>┃ YT-DLP Options: </b><i>{yto}</i>\n\n')
-        text += f'<b>┖ Leech Split Size ~ </b><i> {get_readable_file_size(config_dict["LEECH_SPLIT_SIZE"])}</i> <blockquote>'
+                f'├ 🎞️ <b>Leech Type :</b> <i>{ltype}</i>\n'
+                f'├ 🗂️ <b>As Group :</b> <i>{mediagroup}</i>\n'
+                f'├ 🖼️ <b>Thumbnail :</b> <i>{thumbmsg}</i>\n'
+                f'├ 📩 <b>DM Mode :</b> <i>{sendpm}</i>\n'
+                f'├ 📸 <b>SS Mode :</b> <i>{sendss}</i>\n'
+                f'├ ☁️ <b>RClone :</b> <i>{rccmsg}</i>\n'
+                f'├ 💬 <b>Caption :</b> <i>{capmode.upper()}</i>\n'
+                f'├ 🔠 <b>Prename :</b> <i>{premsg}</i>\n'
+                f'├ 🔡 <b>Sufname :</b> <i>{sufmsg}</i>\n'
+                f'├ 🧹 <b>Remname :</b> <i>{rmmsg}</i>\n'
+                f'├ 🏷️ <b>Metadata :</b> <i>{metadata}</i>\n'
+                f'├ 📥 <b>User Dump / Tds :</b> <i>{dumpch}</i>\n'
+                f'├ 🔑 <b>Custom GDrive :</b> <i>{gdxmsg}</i>\n'
+                f'├ 💬 <b>Custom Caption :</b> <i>{custom_cap}</i>\n'
+                f'├ 🔐 <b>Session String :</b> <i>{sesmsg}</i>\n'
+                f'├ ⚙️ <b>Default Upload :</b> <i>{du}</i>\n'
+                f'├ 🎬 <b>YT-DLP Options :</b> <i>{yto}</i>\n'
+                f'├ ✂️ <b>Leech Split Size :</b> <i>{get_readable_file_size(config_dict["LEECH_SPLIT_SIZE"])}</i>\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         if user_dict.get('rclone_path', '').startswith('mrcc') and not await aiopath.exists(rclone_path):
-            text += '\n<i>┖ Using custom rclone path but user rclone not found, mirror upload will fail!</i>'
+            text += '\n⚠️ <i>Using custom rclone path but user rclone config not found — mirror upload will fail!</i>'
 
     elif data == 'capmode':
         ex_cap = 'Thor: Love and Thunder (2022) 1080p.mkv'
@@ -172,70 +188,82 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         cap_modes = ['mono', 'italic', 'bold', 'normal']
         cap_modes.remove(user_cap)
         caption, fnamecap = user_dict.get('captions'), user_dict.get('fnamecap', True)
+        cap_icons = {'mono': '🔠', 'italic': '✍️', 'bold': '🅱️', 'normal': '🔤'}
         if not user_dict or fnamecap:
-            [buttons.button_data(mode.title(), f'userset {user_id} cap{mode}') for mode in cap_modes]
-        buttons.button_data('🔥 Custom Caption' if caption else 'Custom Caption', f'userset {user_id} setdata setcap')
-        buttons.button_data('Back', f'userset {user_id} back')
+            [buttons.button_data(f'{cap_icons.get(mode, "🔤")} {mode.title()}', f'userset {user_id} cap{mode}') for mode in cap_modes]
+        buttons.button_data(f'{"✅" if caption else "💬"} Custom Caption', f'userset {user_id} setdata setcap')
+        buttons.button_data('« Back', f'userset {user_id} back')
         if caption:
-            buttons.button_data('🔥 FCaption' if fnamecap else 'FCaption', f'userset {user_id} fnamecap')
+            buttons.button_data(f'{"✅" if fnamecap else "📝"} FName Caption', f'userset {user_id} fnamecap')
             custom_cap = f'\n<code>{escape(caption)}</code>'
             if fnamecap:
-                fname_cup = '<b>┎ </b>FName Caption: <b>ENABLE</b>\n'
+                fname_cup = '├ 📝 <b>FName Caption :</b> <b>✅ ENABLED</b>\n'
             else:
-                fname_cup = '<b>┖ </b>FName Caption: <b>DISABLE</b>\n'
+                fname_cup = '├ 📝 <b>FName Caption :</b> <b>❌ DISABLED</b>\n'
                 user_capmode, image, ex_cap = ('DISABLE', config_dict['IMAGE_CAPTION'], '<b>DISABLE</b>')
         else:
-            custom_cap, fname_cup = '<b>DISABLE</b>', ''
-        text = ('<b>CAPTION SETTINGS</b>\n'
-                f'<b>┎ </b>Caption Settings: <b>{from_user.mention}</b>\n'
-                f'<b>┃ </b>Caption Mode: <b>{user_capmode}</b>\n'
+            custom_cap, fname_cup = '<b>❌ Not Set</b>', ''
+        text = ('<blockquote>┌━━━«★彡 <b>CAPTION SETTINGS</b> 彡★»━━━\n'
+                f'├ 👤 <b>User :</b> {from_user.mention}\n'
+                f'├ 💬 <b>Caption Mode :</b> <b>{user_capmode}</b>\n'
                 f'{fname_cup}'
-                f'<b>┖ </b>Custom Caption: {custom_cap}\n\n'
-                f'<b>Example:</b> {ex_cap}')
+                f'├ ✏️ <b>Custom Caption :</b> {custom_cap}\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>\n\n'
+                f'🔍 <b>Example :</b> {ex_cap}')
 
     elif data == 'rctool':
-        rccmsg, buttonkey = ('EXISTS 🔥', '🔥 RClone Config') if await aiopath.exists(rclone_path) else ('NOT SET', 'RClone Config')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata rclone_config')
+        has_rcc = await aiopath.exists(rclone_path)
+        rccmsg = '✅ EXISTS' if has_rcc else '❌ NOT SET'
+        buttons.button_data(f'{"✅" if has_rcc else "☁️"} RClone Config', f'userset {user_id} setdata rclone_config')
 
-        rcpathmsg, buttonkey = (f'<code>{rc_path}</code>', '🔥 RClone Path') if (rc_path := user_dict.get('rclone_path')) else ('<b>NOT SET</b>', 'RClone Path')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata rclone_path')
+        rc_path = user_dict.get('rclone_path')
+        rcpathmsg = f'<code>{rc_path}</code>' if rc_path else '❌ <b>NOT SET</b>'
+        buttons.button_data(f'{"✅" if rc_path else "📂"} RClone Path', f'userset {user_id} setdata rclone_path')
 
-        buttons.button_data('Back', f'userset {user_id} back')
+        buttons.button_data('« Back', f'userset {user_id} back')
 
         image = config_dict['IMAGE_RCLONE']
-        text = ('<b>RCLONE SETTINGS</b>\n'
-                + f'<b>┎ </b>RClone Config: <b>{rccmsg}</b>\n'
-                + f'<b>┖ </b>Rclone Path: {rcpathmsg}\n')
+        text = ('<blockquote>┌━━━«★彡 <b>RCLONE SETTINGS</b> 彡★»━━━\n'
+                f'├ 👤 <b>User :</b> {from_user.mention}\n'
+                f'├ ☁️ <b>RClone Config :</b> <b>{rccmsg}</b>\n'
+                f'├ 📂 <b>RClone Path :</b> {rcpathmsg}\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
 
     elif data == 'gdtool':
-        gdrive_id, buttonkey = (f'<code>{gd_id}</code>', '🔥 Drive ID') if (gd_id := user_dict.get('gdrive_id')) else ('<b>DISABLE</b>', 'Drive ID')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata gdrive_id')
+        gd_id = user_dict.get('gdrive_id')
+        gdrive_id = f'<code>{gd_id}</code>' if gd_id else '❌ <b>DISABLED</b>'
+        buttons.button_data(f'{"✅" if gd_id else "🆔"} Drive ID', f'userset {user_id} setdata gdrive_id')
 
-        index_url, buttonkey = (f'<code>{index}</code>', '🔥 Index URL') if (index := user_dict.get('index_url')) else ('<b>DISABLE</b>', 'Index URL')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata index_url')
+        index = user_dict.get('index_url')
+        index_url = f'<code>{index}</code>' if index else '❌ <b>DISABLED</b>'
+        buttons.button_data(f'{"✅" if index else "🔗"} Index URL', f'userset {user_id} setdata index_url')
 
-        token_pickle, buttonkey = ('EXISTS 🔥', '🔥 Token Pickle') if await aiopath.exists(token_pickle) else ('NOT SET', 'Token Pickle')
-        buttons.button_data(buttonkey, f'userset {user_id} setdata token_pickle')
+        has_tp = await aiopath.exists(token_pickle)
+        token_pickle_msg = '✅ EXISTS' if has_tp else '❌ NOT SET'
+        buttons.button_data(f'{"✅" if has_tp else "🔑"} Token Pickle', f'userset {user_id} setdata token_pickle')
 
-        stop_dup = user_dict.get('stop_duplicate') or 'stop_duplicate' not in user_dict and config_dict['STOP_DUPLICATE']
-        stop_dup_msg, buttonkey = ('ENABLE 🔥', '🔥 Stop Duplicate') if stop_dup else ('DISABLE', 'Stop Duplicate')
-        buttons.button_data(buttonkey, f'userset {user_id} stop_duplicate {stop_dup}', 'header')
+        stop_dup = user_dict.get('stop_duplicate') or ('stop_duplicate' not in user_dict and config_dict['STOP_DUPLICATE'])
+        stop_dup_msg = '✅ ENABLED' if stop_dup else '❌ DISABLED'
+        buttons.button_data(f'{"✅" if stop_dup else "🛑"} Stop Duplicate', f'userset {user_id} stop_duplicate {stop_dup}', 'header')
 
         if await aiopath.exists('accounts'):
-            use_sa, buttonkey = ('ENABLE 🔥', '🔥 Use SA') if user_dict.get('use_sa') else ('DISABLE', 'Use SA')
-            buttons.button_data(buttonkey, f'userset {user_id} use_sa {use_sa}', 'header')
+            use_sa_v = user_dict.get('use_sa')
+            use_sa = '✅ ENABLED' if use_sa_v else '❌ DISABLED'
+            buttons.button_data(f'{"✅" if use_sa_v else "👥"} Use SA', f'userset {user_id} use_sa {use_sa_v}', 'header')
         else:
-            use_sa = 'NOT AVAILABLE'
+            use_sa = '⚠️ NOT AVAILABLE'
 
-        buttons.button_data('Back', f'userset {user_id} back')
+        buttons.button_data('« Back', f'userset {user_id} back')
 
         image = config_dict['IMAGE_GD']
-        text = ('<b>User GDRIVE SETTING</b>\n'
-                f'<b>┎ </b>GDrive ID: {gdrive_id}\n'
-                f'<b>┃ </b>Index URL: {index_url}\n'
-                f'<b>┃ </b>Use SA: <b>{use_sa}</b>\n'
-                f'<b>┃/leech1 </b>Token Pickle: <b>{token_pickle}</b>\n'
-                f'<b>┖ </b>Stop Duplicate: <b>{stop_dup_msg}</b>')
+        text = ('<blockquote>┌━━━«★彡 <b>GDRIVE SETTINGS</b> 彡★»━━━\n'
+                f'├ 👤 <b>User :</b> {from_user.mention}\n'
+                f'├ 🆔 <b>GDrive ID :</b> {gdrive_id}\n'
+                f'├ 🔗 <b>Index URL :</b> {index_url}\n'
+                f'├ 👥 <b>Use SA :</b> <b>{use_sa}</b>\n'
+                f'├ 🔑 <b>Token Pickle :</b> <b>{token_pickle_msg}</b>\n'
+                f'├ 🛑 <b>Stop Duplicate :</b> <b>{stop_dup_msg}</b>\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
 
     elif data == 'zipmode':
         but_dict = {'zfolder': ['Folders', f'userset {user_id} zipmode zfolder'],
@@ -246,7 +274,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         def_data = but_dict[uset_data][0]
         but_dict[uset_data][0] = f'🔥 {def_data}'
         [buttons.button_data(key, value) for key, value in but_dict.values()]
-        buttons.button_data('Back', f'userset {user_id} back')
+        buttons.button_data('« Back', f'userset {user_id} back')
         part_size = get_readable_file_size(config_dict['LEECH_SPLIT_SIZE'])
         image = config_dict['IMAGE_ZIP']
         text = ('<b>ZIP MODE SETTINGS</b>\n⁍ <b>Folders/Default:</b> Zip file/folder\n'
@@ -296,10 +324,10 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             else:
                 buttons.button_data(f'Set {butkey}', f'userset {user_id} prepare {key}')
         if qdata:
-            buttons.button_data('Back', f'userset {user_id} {qdata}')
+            buttons.button_data('« Back', f'userset {user_id} {qdata}')
         text = text.replace('Timeout: 60s.', '')
         if uset_data not in ['setcap', 'index_url', 'token_pickle', 'gdrive_id', 'rclone_path', 'rclone_config']:
-            buttons.button_data('Back', f'userset {user_id} back')
+            buttons.button_data('« Back', f'userset {user_id} back')
 
     elif data == 'prepare':
         msg_thumb = 'Send a photo to to change current thumbnail.\n\n<i>Timeout: 60s.</i>' if await aiopath.exists(thumbpath) else \
@@ -324,9 +352,9 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                         'session_string': (UsetString.SES, config_dict['IMAGE_USER']),
                         'yt_opt': (UsetString.YT, config_dict['IMAGE_YT'])}
         text, image = prepare_dict[uset_data]
-        buttons.button_data('Back', f'userset {user_id} setdata {uset_data}')
+        buttons.button_data('« Back', f'userset {user_id} setdata {uset_data}')
 
-    buttons.button_data('Close', f'userset {user_id} close')
+    buttons.button_data('✘ Close', f'userset {user_id} close')
     return text, image, buttons.build_menu(2)
 
 
