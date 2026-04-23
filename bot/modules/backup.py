@@ -35,11 +35,11 @@ async def backup_message(client: Client, message: Message):
     try:
         _, start, end, source_id, des_id = message.text.split()
     except:
-        await sendMessage('Send valid format: start, end, source id, destination id!', message)
+        await sendMessage('⚠️ <b>Send a valid format:</b> <code>start, end, source_id, destination_id</code>', message)
         return
 
     if bool(list(filter(lambda x: x.ID == int(des_id), hanlder_dict.values()))):
-        await sendMessage('Only allowed one backup at once to same destination!', message)
+        await sendMessage('⚠️ <b>Only one backup is allowed at a time to the same destination!</b>', message)
         return
 
     user_id = message.from_user.id
@@ -55,32 +55,32 @@ async def backup_message(client: Client, message: Message):
         chat = await Bot.get_chat(int(source_id))
         stitle = chat.title
         if chat.has_protected_content:
-            await sendMessage('Upps, u can\'t copy diretcly for restricted content!', message)
+            await sendMessage('🚫 <b>Cannot copy directly from a chat with restricted content!</b>', message)
             return
     except:
-        await sendMessage('Your acc need join to source chat!' if is_session else 'You must add me to source chat!', message)
+        await sendMessage('⚠️ <b>Your userbot account must join the source chat!</b>' if is_session else '⚠️ <b>You must add me to the source chat!</b>', message)
         return
     try:
         dtitle = (await client.get_chat(int(des_id))).title
         user = await client.get_chat_member(int(des_id), bot_name)
         if user.status != ChatMemberStatus.ADMINISTRATOR:
-            await sendMessage('Ups, requires chat admin privileges to copy message(s)!', message)
+            await sendMessage('🛡️ <b>Admin privileges required in destination chat to copy messages!</b>', message)
             return
     except:
-        await sendMessage('You must add me to destination chat!', message)
+        await sendMessage('⚠️ <b>You must add me to the destination chat!</b>', message)
         return
 
     buttons = ButtonMaker()
-    buttons.button_data('All', f'backup all {user_id} {message.id}')
-    buttons.button_data('Photo', f'backup photo {user_id} {message.id}')
-    buttons.button_data('Video', f'backup video {user_id} {message.id}')
-    buttons.button_data('Audio', f'backup audio {user_id} {message.id}')
-    buttons.button_data('Document', f'backup document {user_id} {message.id}')
-    buttons.button_data('Stop', f'backup stop {user_id} {message.id}', 'footer')
+    buttons.button_data('🗂️ All', f'backup all {user_id} {message.id}')
+    buttons.button_data('🖼️ Photo', f'backup photo {user_id} {message.id}')
+    buttons.button_data('🎬 Video', f'backup video {user_id} {message.id}')
+    buttons.button_data('🎵 Audio', f'backup audio {user_id} {message.id}')
+    buttons.button_data('📄 Document', f'backup document {user_id} {message.id}')
+    buttons.button_data('⛔ Stop', f'backup stop {user_id} {message.id}', 'footer')
     backup = Backup()
     backup.ID = int(des_id)
     hanlder_dict[message.id] = backup
-    cmsg = await sendMessage('Starting copy message(s)...', message, buttons.build_menu(3))
+    cmsg = await sendMessage('🚀 <b>Starting backup, please choose a filter...</b>', message, buttons.build_menu(3))
     await sleep(2)
     succ = fail = empy = 0
     status, first_id = 'Done', None
