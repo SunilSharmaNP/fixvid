@@ -78,7 +78,7 @@ class Clone(TaskListener):
             isBulk = True
 
         if config_dict['PREMIUM_MODE'] and not is_premium_user(self.user_id) and (self.multi > 0 or isBulk):
-            await sendMessage('Upss, multi/bulk mode for premium user only', self.message)
+            await sendMessage('💎 <b>Multi / Bulk mode is for Premium users only!</b>', self.message)
             return
 
         if isBulk:
@@ -95,7 +95,7 @@ class Clone(TaskListener):
         if self.link:
             LOGGER.info(self.link)
 
-        self.editable = await sendMessage('<i>Checking request, please wait...</i>', self.message)
+        self.editable = await sendMessage('⏳ <i>Checking your request, please wait...</i>', self.message)
         self.isSharer = is_sharer_link(self.link)
         if self.isSharer:
             await editMessage(f'<i>Checking {urlparse(self.link).netloc} link...</i>\n<code>{self.link}</code>', self.editable)
