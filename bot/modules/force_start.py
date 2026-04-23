@@ -28,19 +28,21 @@ async def remove_from_queue(_, message):
         gid = msg[2] if status else msg[1]
         task = await getTaskByGid(gid)
         if task is None:
-            await sendMessage(message, f"GID: <code>{gid}</code> Not Found.")
+            await sendMessage(message, f"⚠️ <b>GID</b> <code>{gid}</code> <b>Not Found.</b>")
             return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if task is None:
-            await sendMessage(message, "This is not an active task!")
+            await sendMessage(message, "⚠️ <b>This is not an active task!</b>")
             return
     elif len(msg) in {1, 2}:
-        msg = (
-            "Reply to an active Command message which was used to start the download"
-            f" or send <code>/{BotCommands.ForceStartCommand[0]} GID</code> to force start download and upload! Add you can use /cmd <b>fd</b> to force downlaod only or /cmd <b>fu</b> to force upload only!"
-        )
+        msg = ('<blockquote>┌━━━«★彡 <b>FORCE START</b> 彡★»━━━\n'
+               '├ ↩️ Reply to an active command message\n'
+               f'├ 🆔 Or send <code>/{BotCommands.ForceStartCommand[0]} GID</code>\n'
+               '├ 📥 Add <code>fd</code> → force download only\n'
+               '├ 📤 Add <code>fu</code> → force upload only\n'
+               '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         await sendMessage(message, msg)
         return
     if (
@@ -48,7 +50,7 @@ async def remove_from_queue(_, message):
         and task.listener.userId != user_id
         and (user_id not in user_data or not user_data[user_id].get("is_sudo"))
     ):
-        await sendMessage(message, "This task is not for you!")
+        await sendMessage(message, "🚫 <b>This task is not yours!</b>")
         return
     listener = task.listener
     msg = ""
@@ -57,21 +59,21 @@ async def remove_from_queue(_, message):
             listener.forceUpload = True
             if listener.mid in queued_up:
                 await start_up_from_queued(listener.mid)
-                msg = "Task have been force started to upload!"
+                msg = "🚀 <b>Task force started for Upload!</b>"
         elif status == "fd":
             listener.forceDownload = True
             if listener.mid in queued_dl:
                 await start_dl_from_queued(listener.mid)
-                msg = "Task have been force started to download only!"
+                msg = "🚀 <b>Task force started for Download only!</b>"
         else:
             listener.forceDownload = True
             listener.forceUpload = True
             if listener.mid in queued_up:
                 await start_up_from_queued(listener.mid)
-                msg = "Task have been force started to upload!"
+                msg = "🚀 <b>Task force started for Upload!</b>"
             elif listener.mid in queued_dl:
                 await start_dl_from_queued(listener.mid)
-                msg = "Task have been force started to download and upload will start once download finish!"
+                msg = "🚀 <b>Task force started for Download — Upload will start after Download finishes!</b>"
     if msg:
         await sendMessage(message, msg)
 
