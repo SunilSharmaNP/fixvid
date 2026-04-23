@@ -17,7 +17,7 @@ async def broadcast_message(_, message: Message):
     reply_to = message.reply_to_message
     args = message.text.split(maxsplit=1)
     if not reply_to and len(args) == 1:
-        await sendMessage('Please provide message along with command or reply the message', message)
+        await sendMessage('⚠️ <b>Please provide a message with the command, or reply to a message!</b>', message)
         return
     users = {x for x in user_data if not user_data[x].get('is_auth')}
     if message.chat.type.name != 'PRIVATE':
@@ -25,12 +25,12 @@ async def broadcast_message(_, message: Message):
             if not x.user.is_bot or x.user.id != OWNER_ID:
                 users.add(x.user.id)
     count = len(users)
-    msg = await sendMessage('<i>Checking user data, please wait...</i>', message)
+    msg = await sendMessage('⏳ <i>Checking user data, please wait...</i>', message)
     await sleep(2)
     if count:
-        await editMessage(f'<i>Found {count} entry</i>', msg)
+        await editMessage(f'📢 <i>Found <b>{count}</b> recipients. Starting broadcast...</i>', msg)
         await sleep(1)
-        await editMessage(f'<i>Sending brodcase message to {count} users, please wait...</i>', msg)
+        await editMessage(f'📢 <i>Sending broadcast to <b>{count}</b> users, please wait...</i>', msg)
         succ = fail = 0
         for user_id in users:
             if reply_to:
@@ -42,13 +42,14 @@ async def broadcast_message(_, message: Message):
                 succ += 1
             else:
                 fail += 1
-        text = ('Broadcase Message Done!\n'
-                f'<b>Time Taken:</b> {get_readable_time(time() - message.date.timestamp())}\n'
-                f'<b>Total:</b> {count}\n'
-                f'<b>Success:</b> {succ}\n'
-                f'<b>Failed:</b> {fail}')
+        text = ('<blockquote>┌━━━«★彡 <b>BROADCAST DONE</b> 彡★»━━━\n'
+                f'├ ⏱️ <b>Time Taken :</b> <i>{get_readable_time(time() - message.date.timestamp())}</i>\n'
+                f'├ 👥 <b>Total :</b> <i>{count}</i>\n'
+                f'├ ✅ <b>Success :</b> <i>{succ}</i>\n'
+                f'├ ❌ <b>Failed :</b> <i>{fail}</i>\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
     else:
-        text = 'Not found any user to send broadcse message!'
+        text = 'ℹ️ <b>No users found to send broadcast message!</b>'
     await editMessage(text, msg)
 
 
