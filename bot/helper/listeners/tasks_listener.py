@@ -84,7 +84,7 @@ class TaskListener(TaskConfig):
             gid = task.gid()
         LOGGER.info('Download completed: %s', self.name)
         if multi_links:
-            await self.onUploadError('Downloaded! Waiting for other tasks.')
+            await self.onUploadError('✅ Downloaded — Waiting for other tasks to finish.')
             return
 
         up_path = ospath.join(self.dir, self.name)
@@ -456,36 +456,36 @@ class TaskListener(TaskConfig):
         dt_date, dt_time = get_date_time(self.message)
         TIME_ZONE_TITLE = config_dict['TIME_ZONE_TITLE']
         if (chat_id := config_dict['LINK_LOG']) and self.isSuperChat:
-            msg = '<b>LINK LOGS</b>\n'
+            msg = '<blockquote>┌━━━«★彡 <b>LINK LOGS</b> 彡★»━━━\n'
             if self.name:
-                msg += f'<code>{self.name}</code>\n'
-            msg += (f'<b>┌ Cc: </b>{self.tag}\n'
-                    f'<b>├ ID: </b><code>{self.user_id}</code>\n'
-                    f'<b>├ Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
-                    f'<b>├ Action: </b>{action(self.message)}\n'
-                    f'<b>├ Status: </b>#undone\n'
-                    f'<b>├ On: </b>{"#clone" if self.isClone else "#download"}\n'
-                  #  f'<b>├ Add: </b>{dt_date}\n'
-                  #  f'<b>├ At: </b>{dt_time} ({TIME_ZONE_TITLE})\n'
-                    f'<b>└ Source Link:</b>\n<code>{get_link(self.message, get_source=True)}</code>')
+                msg += f'├ 📄 <b>Name :</b> <code>{self.name}</code>\n'
+            msg += (f'├ 👤 <b>Cc :</b> {self.tag}\n'
+                    f'├ 🆔 <b>ID :</b> <code>{self.user_id}</code>\n'
+                    f'├ ⏱️ <b>Elapsed :</b> {get_readable_time(time() - self.message.date.timestamp())}\n'
+                    f'├ ⚙️ <b>Action :</b> {action(self.message)}\n'
+                    f'├ 📌 <b>Status :</b> #undone\n'
+                    f'├ 🔧 <b>On :</b> {"#clone" if self.isClone else "#download"}\n'
+                    f'├ 🔗 <b>Source :</b>\n<code>{get_link(self.message, get_source=True)}</code>\n'
+                    '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
             if reply_to and is_media(reply_to):
                 await sendMedia(msg, chat_id, reply_to)
             else:
                 await sendCustom(msg, chat_id)
         if len(error) > (1000 if config_dict['ENABLE_IMAGE_MODE'] else 3800):
             err_msg = await sync_to_async(TelePost('Download Error').create_post, error.replace('\n', '<br>'))
-            err_msg = f'<a href="{err_msg}"><b>Details</b></a>'
+            err_msg = f'<a href="{err_msg}"><b>View Details</b></a>'
         else:
             err_msg = escape(error)
-        msg = f'<b>{"Clone" if self.isClone else "Download"} Has Been Stopped!</b>\n'
+        action_word = "Clone" if self.isClone else "Download"
+        msg = (f'<blockquote>┌━━━«★彡 <b>{action_word.upper()} STOPPED</b> 彡★»━━━\n'
+               '├ ⛔ <b>Status :</b> <i>Task has been Cancelled</i>\n')
         if self.name:
-            msg += f'<code>{self.name}</code>\n'
-        msg += (f'<b>┌ Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
-                f'<b>├ Cc:</b> {self.tag}\n'
-                f'<b>├ Action: </b>{action(self.message)}\n'
-            #    f'<b>├ Add: </b>{dt_date}\n'
-             #   f'<b>├ At: </b>{dt_time} ({TIME_ZONE_TITLE})\n'
-                f'<b>└ Due to:</b> {err_msg}')
+            msg += f'├ 📄 <b>Name :</b> <code>{self.name}</code>\n'
+        msg += (f'├ ⏱️ <b>Elapsed :</b> {get_readable_time(time() - self.message.date.timestamp())}\n'
+                f'├ 👤 <b>Cc :</b> {self.tag}\n'
+                f'├ ⚙️ <b>Action :</b> {action(self.message)}\n'
+                f'├ ❗ <b>Reason :</b> {err_msg}\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         if listfile:
             await sendFile(self.message, listfile, msg, config_dict['IMAGE_HTML'])
         else:
@@ -529,40 +529,40 @@ class TaskListener(TaskConfig):
         reply_to = self.message.reply_to_message
         TIME_ZONE_TITLE = config_dict['TIME_ZONE_TITLE']
         if (chat_id := config_dict['LINK_LOG']) and self.isSuperChat:
-            msg = '<b>LINK LOGS</b>\n'
+            msg = '<blockquote>┌━━━«★彡 <b>LINK LOGS</b> 彡★»━━━\n'
             if self.name:
-                msg += f'<code>{self.name}</code>\n'
-            msg += (f'<b>┌ Cc: </b>{self.tag}\n'
-                    f'<b>├ ID: </b><code>{self.user_id}</code>\n'
-                    f'<b>├ Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
-                    f'<b>├ Action: </b>{action(self.message)}\n'
-                    f'<b>├ Status: </b>{"#done" if "Seeding" in error else "#undone"}\n'
-                    f'<b>├ On: </b>{"#clone" if self.isClone else "#upload"}\n'
-                    f'<b>└ Source Link:</b>\n<code>{get_link(self.message, get_source=True)}</code>')
-                             #   f'<b>├ Add: </b>{dt_date}\n'
-                 #   f'<b>├ At: </b>{dt_time} ({TIME_ZONE_TITLE})\n'
+                msg += f'├ 📄 <b>Name :</b> <code>{self.name}</code>\n'
+            msg += (f'├ 👤 <b>Cc :</b> {self.tag}\n'
+                    f'├ 🆔 <b>ID :</b> <code>{self.user_id}</code>\n'
+                    f'├ ⏱️ <b>Elapsed :</b> {get_readable_time(time() - self.message.date.timestamp())}\n'
+                    f'├ ⚙️ <b>Action :</b> {action(self.message)}\n'
+                    f'├ 📌 <b>Status :</b> {"#done" if "Seeding" in error else "#undone"}\n'
+                    f'├ 🔧 <b>On :</b> {"#clone" if self.isClone else "#upload"}\n'
+                    f'├ 🔗 <b>Source :</b>\n<code>{get_link(self.message, get_source=True)}</code>\n'
+                    '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
             if reply_to and is_media(reply_to):
                 await sendMedia(msg, chat_id, reply_to)
             else:
                 await sendCustom(msg, chat_id)
         if len(error) > (1000 if config_dict['ENABLE_IMAGE_MODE'] else 3800):
             err_msg = await sync_to_async(TelePost('Upload Error').create_post, error.replace('\n', '<br>'))
-            err_msg = f'<a href="{err_msg}"><b>Details</b></a>'
+            err_msg = f'<a href="{err_msg}"><b>View Details</b></a>'
         else:
             err_msg = escape(error)
-        msg = f'<b>{"Clone" if self.isClone else "Upload"} Has Been Stopped!</b>\n'
+        action_word = "Clone" if self.isClone else "Upload"
+        msg = (f'<blockquote>┌━━━«★彡 <b>{action_word.upper()} STOPPED</b> 彡★»━━━\n'
+               '├ ⛔ <b>Status :</b> <i>Task has been Cancelled</i>\n')
         if self.name:
-            msg += f'<code>{self.name}</code>\n'
-        msg += (f'<b>┌ Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
-                f'<b>├ Cc:</b> {self.tag}\n'
-                f'<b>├ Action: </b>{action(self.message)}\n'
-                f'<b>└ Due to:</b> {err_msg}')
-                     #   f'<b>├ Add: </b>{dt_date}\n'
-            #    f'<b>├ At: </b>{dt_time} ({TIME_ZONE_TITLE})\n'
+            msg += f'├ 📄 <b>Name :</b> <code>{self.name}</code>\n'
+        msg += (f'├ ⏱️ <b>Elapsed :</b> {get_readable_time(time() - self.message.date.timestamp())}\n'
+                f'├ 👤 <b>Cc :</b> {self.tag}\n'
+                f'├ ⚙️ <b>Action :</b> {action(self.message)}\n'
+                f'├ ❗ <b>Reason :</b> {err_msg}\n'
+                '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         if self.isGofile:
-            buttons.button_link('GoFile Link', self.isGofile)
+            buttons.button_link('🔗 GoFile Link', self.isGofile)
             if config_dict['SAVE_MESSAGE'] and self.isSuperChat:
-                buttons.button_data('Save Message', 'save', 'footer')
+                buttons.button_data('💾 Save Message', 'save', 'footer')
         await sendingMessage(msg, self.message, choice(config_dict['IMAGE_COMPLETE'].split()), buttons.build_menu(1))
 
         if sticker := config_dict['STICKERID_MIRROR'] if any(x in error for x in ['Seeding', 'Downloaded']) else config_dict['STICKERID_ERROR']:
