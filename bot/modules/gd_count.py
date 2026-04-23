@@ -60,7 +60,7 @@ async def countNode(_, message: Message):
         if user_data.get(user_id, {}).get('enable_pm') and isSuperGoup:
             await copyMessage(user_id, msg)
     else:
-        msg = await sendMessage('Send <b>GDrive</b> link along with command or by replying to the link by command', message)
+        msg = await sendMessage('⚠️ <b>Send a GDrive link with the command, or reply to the link!</b>', message)
 
     if reply_to and isSuperGoup and (stime := config_dict['AUTO_DELETE_UPLOAD_MESSAGE_DURATION']):
         await auto_delete_message(message, msg, reply_to, stime=stime)
