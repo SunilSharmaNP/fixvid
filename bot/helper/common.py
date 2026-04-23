@@ -238,7 +238,7 @@ class TaskConfig:
             multi_tags.discard(self.multiTag)
             return
         if self.multiTag and self.multiTag not in multi_tags:
-            await gather(sendMessage(f'{self.tag}, Multi Task has been cancelled!', self.message), sendStatusMessage(self.message))
+            await gather(sendMessage(f'⛔ {self.tag}, <b>Multi Task has been Cancelled!</b>', self.message), sendStatusMessage(self.message))
             return
         if len(self.bulk) != 0:
             msg = input_list[:1]
@@ -255,7 +255,7 @@ class TaskConfig:
                 nextmsg = await self.client.get_messages(self.message.chat.id, self.message.reply_to_message_id + 1)
             except Exception as e:
                 LOGGER.error(e)
-                await sendMessage(f'Failed fetch next message to run multi, ERROR: {e}!', self.message)
+                await sendMessage(f'❌ <b>Failed to fetch next message for multi task!</b>\n<b>Error :</b> <code>{e}</code>', self.message)
                 return
             msgts = ' '.join(msg)
             if self.multi > 2:
@@ -266,7 +266,7 @@ class TaskConfig:
                     self.message.reply_to_message_id = self.message.reply_to_message_id + 1
                     self.run_multi(input_list, folder_name, obj, retry + 1)
                 else:
-                    await sendMessage('Failed fetch next message to run multi, mostly have empty/invalid message between link/file!', self.message)
+                    await sendMessage('❌ <b>Failed to fetch next message for multi task!</b>\n<i>Most likely an empty/invalid message between link/file.</i>', self.message)
                 return
         nextmsg = await self.client.get_messages(self.message.chat.id, nextmsg.id)
         if folder_name:
@@ -293,7 +293,7 @@ class TaskConfig:
             obj(self.client, nextmsg, self.isQbit, self.isJd, self.isLeech, self.vidMode, self.sameDir, self.bulk, self.multiTag, self.options).newEvent()
         except Exception as e:
             LOGGER.error(e)
-            await sendMessage('Reply to text file or to telegram message that have links seperated by new line!', self.message)
+            await sendMessage('⚠️ <b>Reply to a text file or a Telegram message containing links separated by new lines!</b>', self.message)
 
     async def isOneFile(self, path: str):
         if ospath.isfile(path) or self.seed:
