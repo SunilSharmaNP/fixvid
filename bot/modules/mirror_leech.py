@@ -128,7 +128,7 @@ class Mirror(TaskListener):
             isBulk = True
 
         if config_dict['PREMIUM_MODE'] and not is_premium_user(self.user_id) and (self.multi > 0 or isBulk):
-            await sendMessage(f'Upss {self.tag}, multi/bulk mode for premium user only', self.message)
+            await sendMessage(f'💎 {self.tag}, <b>Multi / Bulk mode is for Premium users only!</b>', self.message)
             return
 
         if not isBulk:
@@ -163,7 +163,7 @@ class Mirror(TaskListener):
 
         self.link = self.link or get_link(self.message)
 
-        self.editable = await sendMessage('<i>Checking request, please wait...</i>', self.message)
+        self.editable = await sendMessage('⏳ <i>Checking your request, please wait...</i>', self.message)
         if self.link:
             await sleep(0.5)
 
