@@ -724,6 +724,21 @@ async def intialize_userbot(check=True):
                     if not config_dict['LEECH_LOG']:
                         LOGGER.warning('Premium Leech required Leech Log!')
                     bot_dict['MAX_SPLIT_SIZE'] = 4194304000
+                    # IMPORTANT: userbot is started with no_updates=True, which
+                    # means it never receives chat updates and its in-memory
+                    # peer cache stays empty. Without a cached peer, Pyrofork
+                    # cannot resolve new-format channel IDs like -100xxxxxxxxxx
+                    # (PEER_ID_INVALID), even if the userbot is admin in that
+                    # channel. Sweeping get_dialogs() once at startup populates
+                    # the peer cache for every chat the userbot is a member of,
+                    # so subsequent send_message(LEECH_LOG, ...) works.
+                    try:
+                        dialog_count = 0
+                        async for _ in userbot.get_dialogs():
+                            dialog_count += 1
+                        LOGGER.info('Userbot peer cache warmed: %s dialogs loaded.', dialog_count)
+                    except Exception as e:
+                        LOGGER.warning('Userbot get_dialogs warm-up failed: %s', e)
                 else:
                     await userbot.stop()
                     LOGGER.info('Not detected premium from session string, using default client!')
