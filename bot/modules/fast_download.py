@@ -38,7 +38,7 @@ class FastDL(TaskListener):
     @new_task
     async def newEvent(self):
         if not config_dict['RCLONE_SERVE_URL'] or not await aiopath.exists('rclone.conf') or not config_dict['ENABLE_FASTDL']:
-            await sendMessage('Fast download not available!', self.message)
+            await sendMessage('⚠️ <b>Fast Download is not available!</b>', self.message)
             return
 
         text = self.message.text.split('\n')
@@ -84,14 +84,14 @@ class FastDL(TaskListener):
         self.link = self.link or get_link(self.message)
 
         if not is_url(self.link) and not is_magnet(self.link):
-            await sendMessage('Send command along with link or by reply to the link!', self.message)
+            await sendMessage('⚠️ <b>Send the command with a link, or reply to a link!</b>', self.message)
             return
 
-        self.editable = await sendMessage('<i>Checking request, please wait...</i>', self.message)
+        self.editable = await sendMessage('⏳ <i>Checking your request, please wait...</i>', self.message)
         upload_path = config_dict['RCLONE_PATH']
         rjson = await cmd_exec(['gclone', 'backend', 'addurl', '--config', 'rclone.conf', upload_path, self.link])
         if rjson[2] != 0:
-            text = 'The server has been terminated!' if "doesn't support backend" in rjson[1] else 'Something when wrong or invalid link!'
+            text = '🛑 <b>The server has been terminated!</b>' if "doesn't support backend" in rjson[1] else '❌ <b>Something went wrong, or invalid link!</b>'
             await editMessage(text, self.editable)
             return
 
