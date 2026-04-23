@@ -40,7 +40,7 @@ telegraph
 tenacity
 tgcrypto
 urllib3
-uvloop
+uvloop==0.21.0
 xattr
 yt-dlp
 html_telegraph_poster
