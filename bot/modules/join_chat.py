@@ -16,21 +16,21 @@ async def join_chat(_, message: Message):
     if savebot:
         link = get_link(message)
         if not link:
-            msg = await sendMessage('Please provided a chat join link!', message)
+            msg = await sendMessage('⚠️ <b>Please provide a chat join link!</b>', message)
             return
         try:
             await savebot.join_chat(link)
-            text = 'Suscessfully joined to chat.'
+            text = '✅ <b>Successfully joined the chat!</b>'
         except UserAlreadyParticipant:
-            text = 'Already joined to chat.'
+            text = 'ℹ️ <b>Already joined the chat.</b>'
         except InviteHashExpired:
-            text = 'Invite link expired!'
+            text = '⏰ <b>Invite link expired!</b>'
         except Exception as e:
             LOGGER.error(e)
-            text = 'Invalid link!'
+            text = '❌ <b>Invalid link!</b>'
         msg = await sendMessage(text, message)
     else:
-        msg = await sendMessage(f'Default save content mode is disabled! Use custom string instead /{BotCommands.UserSetCommand}.', message)
+        msg = await sendMessage(f'⚠️ <b>Default save content mode is disabled!</b>\nUse a custom session string via <code>/{BotCommands.UserSetCommand}</code>.', message)
     await auto_delete_message(message, msg, message.reply_to_message)
 
 
