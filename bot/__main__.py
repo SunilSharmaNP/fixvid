@@ -349,6 +349,18 @@ async def main():
                  sync_to_async(start_aria2_listener, wait=False),
                  return_exceptions=True)
     await gather(intialize_savebot(config_dict['SAVE_SESSION_STRING'], False), restart_notification(), ping_base_route(), return_exceptions=True)
+    # Warm up Pyrogram peer cache for log/dump channels so the first upload
+    # after a restart doesn't fail with PeerIdInvalid.
+    for key in ('LEECH_LOG', 'MIRROR_LOG', 'OTHER_LOG', 'LINK_LOG'):
+        chat_id = config_dict.get(key)
+        if not chat_id:
+            continue
+        try:
+            await bot.get_chat(chat_id)
+            LOGGER.info('Resolved %s peer: %s', key, chat_id)
+        except Exception as e:
+            LOGGER.warning('Could not resolve %s (%s): %s. '
+                           'Make sure the bot is added to that chat as admin.', key, chat_id, e)
     LOGGER.info('Bot @%s Started!', bot_name)
     signal(SIGINT, exit_clean_up)
 
