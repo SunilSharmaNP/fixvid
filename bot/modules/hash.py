@@ -37,7 +37,7 @@ async def hasher(_, message: Message):
 
     VtPath = ospath.join('hash', str(user_id))
     await makedirs(VtPath, exist_ok=True)
-    hmsg = await sendMessage('<i>Processing media/file...</i>', message)
+    hmsg = await sendMessage('⏳ <i>Processing media / file, please wait...</i>', message)
     try:
         fname, fsize = media.file_name, media.file_size
         outpath = await bot.download_media(message=media, file_name=ospath.join(VtPath, media.file_name))
