@@ -301,13 +301,13 @@ class Misc(MiscTool):
     @new_task
     async def newEvent(self):
         if config_dict['PREMIUM_MODE'] and not is_premium_user(self.message.from_user.id if self.message.from_user else self.message.sender_chat.id):
-            await sendMessage('This feature only for <b>Premium User</b>!', self.message)
+            await sendMessage('💎 <b>This feature is only available for Premium Users!</b>', self.message)
             return
         if not self.reply_to and len(self.message.command) == 1:
-            await sendMessage(f'Send command with a message or reply to a message.\n{HelpString.MISC}', self.message)
+            await sendMessage(f'⚠️ <b>Send the command with a message or reply to a message.</b>\n{HelpString.MISC}', self.message)
             return
         future = self._event_handler()
-        self.editable, _ = await gather(sendMessage('<i>Checking request, please wait...</i>', self.message), self._verify_message())
+        self.editable, _ = await gather(sendMessage('⏳ <i>Checking your request, please wait...</i>', self.message), self._verify_message())
         await gather(self.list_message(), wrap_future(future))
 
 
