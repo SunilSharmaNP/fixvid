@@ -16,9 +16,9 @@ from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, d
 @new_task
 async def purge_message(client: Client, message: Message):
     reply_to = message.reply_to_message
-    msg = await sendMessage('<i>Deleting message, please wait..</i>', message)
+    msg = await sendMessage('🗑️ <i>Deleting messages, please wait...</i>', message)
     if not reply_to:
-        await editMessage('Reply to a message to purge from.', msg)
+        await editMessage('⚠️ <b>Reply to a message to start purging from.</b>', msg)
         return
 
     @handle_message
