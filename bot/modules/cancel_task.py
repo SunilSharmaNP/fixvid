@@ -23,24 +23,27 @@ async def cancel_task(_, message: Message):
             return
         task = await getTaskByGid(gid)
         if not task:
-            cancelmsg = await sendMessage(f'{message.from_user.mention}, GID: <code>{gid}</code> not found.', message)
+            cancelmsg = await sendMessage(f'⚠️ {message.from_user.mention}, GID <code>{gid}</code> Not Found!', message)
             await auto_delete_message(message, cancelmsg)
             return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if not task:
-            cancelmsg = await sendMessage(f'{message.from_user.mention}, this is not an active task!', message)
+            cancelmsg = await sendMessage(f'⚠️ {message.from_user.mention}, This Is Not An Active Task!', message)
             await auto_delete_message(message, cancelmsg)
             return
     elif len(msg) == 1:
-        cancelmsg = f'Reply to an active <code>/{BotCommands.MirrorCommand}</code> message which was used to start the download or send <code>/{BotCommands.CancelTaskCommand} GID</code> to cancel it!'
+        cancelmsg = ('<blockquote>┌━━━«★彡 <b>HOW TO CANCEL</b> 彡★»━━━\n'
+                     f'├ ↩️ Reply to active <code>/{BotCommands.MirrorCommand}</code> message\n'
+                     f'├ 🆔 Or send <code>/{BotCommands.CancelTaskCommand} GID</code>\n'
+                     '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         cancelmsg = await sendMessage(cancelmsg, message)
         await auto_delete_message(message, cancelmsg)
         return
 
     if OWNER_ID != user_id and task.listener.user_id != user_id and (user_id not in user_data or not user_data[user_id].get('is_sudo')):
-        cancelmsg = await sendMessage(f'{message.from_user.mention}, this task is not for you!', message)
+        cancelmsg = await sendMessage(f'🚫 {message.from_user.mention}, This Task Is Not Yours!', message)
         await auto_delete_message(message, cancelmsg)
         return
 
@@ -57,9 +60,9 @@ async def cancel_multi(_, query: CallbackQuery):
     tag = int(data[2])
     if tag in multi_tags:
         multi_tags.discard(int(data[2]))
-        msg = 'Stopped!'
+        msg = '⛔ Stopped!'
     else:
-        msg = 'Already Stopped/Finished!'
+        msg = '✅ Already Stopped / Finished!'
     await gather(query.answer(msg, True), deleteMessage(query.message))
 
 
@@ -74,27 +77,31 @@ async def cancel_all(message: Message, status: str, user_id: int):
             await obj.cancel_task()
             success += 1
             await sleep(1)
-        text = f'Successfully cancelled {len(matches)} task for <b>{status}</b>.' if success else f'No any active tasks for <b>{status}</b>.'
+        text = (f'✅ Successfully Cancelled <b>{len(matches)}</b> task(s) for <b>{status}</b>.'
+                if success else f'ℹ️ No active tasks for <b>{status}</b>.')
     else:
-        text = f'No any active tasks for <b>{status}</b>.'
+        text = f'ℹ️ No active tasks for <b>{status}</b>.'
     await gather(sendMessage(text, message.reply_to_message), deleteMessage(message))
 
 
 def create_cancel_buttons(user_id: int):
     buttons = ButtonMaker()
     [buttons.button_data(name, f'canall {user_id} ms {name}') for stats, name in MirrorStatus.__dict__.items() if stats.startswith('STATUS')]
-    buttons.button_data('All (USER)', f'canall {user_id} ms user')
-    buttons.button_data('All (SUDO)', f'canall {user_id} ms all')
-    buttons.button_data('Close', f'canall {user_id} close', 'footer')
+    buttons.button_data('👤 All (USER)', f'canall {user_id} ms user')
+    buttons.button_data('👑 All (SUDO)', f'canall {user_id} ms all')
+    buttons.button_data('✘ Close', f'canall {user_id} close', 'footer')
     return buttons.build_menu(2)
 
 
 async def cancell_all_buttons(_, message: Message):
     async with task_dict_lock:
         if len(task_dict) == 0:
-            await sendMessage('No any active tasks to cancel!', message)
+            await sendMessage('ℹ️ <b>No active tasks to cancel!</b>', message)
             return
-    await sendingMessage('Choose tasks to cancel.', message, config_dict['IMAGE_CANCEL'], create_cancel_buttons(message.from_user.id))
+    text = ('<blockquote>┌━━━«★彡 <b>CANCEL TASKS</b> 彡★»━━━\n'
+            '├ ⛔ Choose which task category to cancel:\n'
+            '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
+    await sendingMessage(text, message, config_dict['IMAGE_CANCEL'], create_cancel_buttons(message.from_user.id))
 
 
 @new_task
@@ -103,33 +110,40 @@ async def cancel_all_update(_, query: CallbackQuery):
     data = query.data.split()
     user_id = int(data[1])
     if user_id != query.from_user.id:
-        await query.answer('Not yours!', True)
+        await query.answer('🚫 Not Yours!', True)
         return
     if data[2] == 'all' and not await CustomFilters.sudo('', message.reply_to_message):
-        await query.answer('What are you doing? It\'s say for sudo!!', True)
+        await query.answer('🚫 Sudo only option!', True)
         return
     await query.answer()
+    base_text = ('<blockquote>┌━━━«★彡 <b>CANCEL TASKS</b> 彡★»━━━\n'
+                 '├ ⛔ Choose which task category to cancel:\n'
+                 '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
     match data[2]:
         case 'close':
             await deleteMessage(message, message.reply_to_message)
         case 'back':
-            await editMessage('Choose tasks to cancel.', message, create_cancel_buttons(user_id))
+            await editMessage(base_text, message, create_cancel_buttons(user_id))
         case 'ms':
             buttons = ButtonMaker()
-            buttons.button_data('Yes!', f'canall {user_id} {data[3]}')
-            buttons.button_data('<<', f'canall {user_id} back')
-            buttons.button_data('Close', f'canall {user_id} close')
-            await editMessage(f'Are you sure you want to cancel all <b>{data[3]}</b> tasks!', message, buttons.build_menu(2))
+            buttons.button_data('✅ Yes, Cancel', f'canall {user_id} {data[3]}')
+            buttons.button_data('« Back', f'canall {user_id} back')
+            buttons.button_data('✘ Close', f'canall {user_id} close')
+            confirm_text = ('<blockquote>┌━━━«★彡 <b>CONFIRM CANCEL</b> 彡★»━━━\n'
+                            f'├ ⚠️ Cancel all <b>{data[3]}</b> tasks?\n'
+                            '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
+            await editMessage(confirm_text, message, buttons.build_menu(2))
         case value:
             if value == 'all':
                 user_id = 0
             elif value == 'user':
                 value = 'all'
 
+            wait_text = f"⏳ <i>Cancelling <b>{value.replace('...', '')}</b> task(s), please wait...</i>"
             if config_dict['ENABLE_IMAGE_MODE']:
-                await editPhoto(f"<i>Canceling {value.replace('...', '')} task(s), please wait...</i>", message, config_dict['IMAGE_CANCEL'])
+                await editPhoto(wait_text, message, config_dict['IMAGE_CANCEL'])
             else:
-                await editMessage(f"<i>Canceling {value.replace('...', '')} task(s), please wait...</i>", message)
+                await editMessage(wait_text, message)
             await cancel_all(message, value, user_id)
 
 
