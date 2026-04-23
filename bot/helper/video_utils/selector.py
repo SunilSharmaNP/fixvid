@@ -68,132 +68,183 @@ class SelectMode():
             await editMessage(text, self._reply, buttons)
 
     def _captions(self, mode: str=None):
-        msg = ('<b>VIDEOS TOOL SETTINGS</b>'
-               f'\nMode: <b>{vidmode}</b>' if (vidmode := VID_MODE.get(self.mode)) else ''
-               f'\nName: <b>{self.newname or "Default"}</b>'
-               f'\nTrim Duration: <b>{list(self.extra_data.values())}</b>' if self.extra_data and self.mode == 'trim' else '')
+        # SS Bots styled professional Video Tools UI
+        mode_icons = {
+            'vid_vid': '🎞️', 'vid_aud': '🎵', 'vid_sub': '📝', 'subsync': '🔄',
+            'compress': '🗜️', 'convert': '♻️', 'watermark': '💧',
+            'extract': '📤', 'trim': '✂️', 'rmstream': '🚫',
+        }
+        # Professional tool descriptions shown under selected mode
+        mode_desc = {
+            'vid_vid':  'Merge two or more video files into one output.',
+            'vid_aud':  'Mux extra audio track(s) into a video.',
+            'vid_sub':  'Mux subtitle file(s) into a video (soft / hardsub).',
+            'subsync':  'Auto / manually sync subtitle timings to the video.',
+            'compress': 'Re-encode the video to a smaller size with chosen quality.',
+            'convert':  'Change container / codec to a different format.',
+            'watermark':'Burn an image watermark (or hardsub) onto the video.',
+            'extract':  'Pull out video / audio / subtitle streams as files.',
+            'trim':     'Cut a section from the video using a time range.',
+            'rmstream': 'Remove unwanted audio / subtitle streams from the video.',
+        }
+        header = '┌━━━«★彡 <b>VIDEO TOOLS</b> 彡★»━━━'
+        footer = '└━━━«★彡 <b>SS Bots</b> 彡★»━━━'
+        lines = [header]
+        vidmode = VID_MODE.get(self.mode)
+        icon = mode_icons.get(self.mode, '🎬')
+        if vidmode:
+            lines.append(f'├ {icon} <b>Mode :</b> <i>{vidmode}</i>')
+            if desc := mode_desc.get(self.mode):
+                lines.append(f'├ 💡 <b>About :</b> <i>{desc}</i>')
+        else:
+            lines.append('├ 🎬 <b>Mode :</b> <i>Not selected</i>')
+            lines.append('├ 💡 <b>Tip :</b> <i>Pick a tool below to get started.</i>')
+        lines.append(f'├ 📝 <b>Name :</b> <code>{self.newname or "Default"}</code>')
+        if self.extra_data and self.mode == 'trim':
+            t = list(self.extra_data.values())
+            lines.append(f'├ ✂️ <b>Trim :</b> <code>{" → ".join(map(str, t))}</code>')
         if self.mode in ('vid_sub', 'watermark'):
             hardsub = self.extra_data.get('hardsub')
-            msg += f"\nHardsub Mode: <b>{'Enable' if hardsub else 'Disable'}</b>"
+            lines.append(f"├ 🔥 <b>Hardsub :</b> {'✅ Enabled' if hardsub else '❌ Disabled'}")
             if hardsub:
-                msg += f"\nBold Style: <b>{'Enable' if self.extra_data.get('boldstyle') else 'Disable'}</b>"
+                lines.append(f"├ 🅱️ <b>Bold Style :</b> {'✅ On' if self.extra_data.get('boldstyle') else '❌ Off'}")
                 if fontname := self.extra_data.get('fontname') or config_dict['HARDSUB_FONT_NAME']:
-                    msg += f'\nFont Name: <b>{fontname.replace("_", " ")}</b>'
+                    lines.append(f"├ 🔤 <b>Font Name :</b> <i>{fontname.replace('_', ' ')}</i>")
                 if fontsize := self.extra_data.get('fontsize') or config_dict['HARDSUB_FONT_SIZE']:
-                    msg += f'\nFont Size: <b>{fontsize}</b>'
+                    lines.append(f'├ 🔡 <b>Font Size :</b> <i>{fontsize}</i>')
                 if fontcolour := self.extra_data.get('fontcolour'):
-                    msg += f'\nFont Colour: <b>{fontcolour}</b>'
+                    lines.append(f'├ 🎨 <b>Font Colour :</b> <code>#{fontcolour}</code>')
         if quality := self.extra_data.get('quality'):
-            msg += f'\nQuality: <b>{quality}</b>'
+            lines.append(f'├ 📺 <b>Quality :</b> <i>{quality}</i>')
         if self.mode == 'watermark' and (wmsize := self.extra_data.get('wmsize')):
-            msg += f'\nWM Size: <b>{wmsize}</b>'
+            lines.append(f'├ 📐 <b>WM Size :</b> <i>{wmsize}</i>')
             if wmsize and (wmposition := self.extra_data.get('wmposition')):
-                pos_dict = {'5:5': 'Top Left',
-                            'main_w-overlay_w-5:5': 'Top Right',
-                            '5:main_h-overlay_h': 'Bottom Left',
-                            'w-overlay_w-5:main_h-overlay_h-5': 'Bottom Right'}
-                msg += f'\nWM Position: <b>{pos_dict[wmposition]}</b>'
+                pos_dict = {'5:5': '↖️ Top Left',
+                            'main_w-overlay_w-5:5': '↗️ Top Right',
+                            '5:main_h-overlay_h': '↙️ Bottom Left',
+                            'w-overlay_w-5:main_h-overlay_h-5': '↘️ Bottom Right'}
+                lines.append(f'├ 📍 <b>WM Position :</b> <i>{pos_dict[wmposition]}</i>')
             if popupwm := self.extra_data.get('popupwm'):
-                msg += f'\nDisplay: <b>{popupwm}x/20s</b>'
+                lines.append(f'├ 💫 <b>Display :</b> <i>{popupwm}x / 20s</i>')
         if self.mode == 'subsync' and (typee := self.extra_data.get('type')):
-            msg += f'\nSync Mode: <b>{typee.lstrip("sync_").title()}</b>'
-        match mode:
-            case 'rename':
-                msg += '\n\n<i>Send valid name with extension...</i>'
-            case 'watermark':
-                msg += '\n\n<i>Send valid image to set as watermark...</i>'
-            case 'subfile':
-                msg += '\n\n<i>Send valid subtitle (.ass or .srt) for hardsub...</i>'
-            case 'wmsize':
-                msg += '\n\n<i>Choose watermark size</i>'
-            case 'fontsize':
-                msg += ('\n\n<i>Choose font size</i>\n'
-                        '<b>Recommended:</b>\n'
-                        '1080p: <b>21-26 </b>\n'
-                        '720p: <b>16-21</b>\n'
-                        '480p: <b>11-16</b>')
-            case 'trim':
-                msg += '\n\n<i>Send valid trim duration <b>hh:mm:ss hh:mm:ss</b></i>'
-        msg += f'\n\n<i>Time Out: {get_readable_time(180 - (time()-self._time))}</i>'
-        return msg
+            lines.append(f'├ 🔄 <b>Sync Mode :</b> <i>{typee.lstrip("sync_").title()}</i>')
+        lines.append(footer)
+        msg = '\n'.join(lines)
+        # Action prompt
+        prompts = {
+            'rename':    '\n\n📝 <i>Send a valid file name with extension…</i>',
+            'watermark': '\n\n💧 <i>Send a valid image to use as watermark…</i>',
+            'subfile':   '\n\n📄 <i>Send a subtitle file (.ass or .srt) for hardsub…</i>',
+            'wmsize':    '\n\n📐 <i>Pick the watermark size</i>',
+            'fontsize':  ('\n\n🔡 <i>Pick a font size</i>\n'
+                          '<b>Recommended:</b>\n'
+                          '• 1080p — <b>21-26</b>\n'
+                          '• 720p  — <b>16-21</b>\n'
+                          '• 480p  — <b>11-16</b>'),
+            'trim':      '\n\n✂️ <i>Send a trim range</i>\n<code>hh:mm:ss hh:mm:ss</code>',
+        }
+        if mode in prompts:
+            msg += prompts[mode]
+        msg += f'\n\n⏳ <i>Time Out :</i> <b>{get_readable_time(180 - (time()-self._time))}</b>'
+        return f'<blockquote>{msg}</blockquote>'
 
     async def list_buttons(self, mode: str=''):
         buttons, bnum = ButtonMaker(), 2
+        # Pretty button labels for tools (icon + name)
+        mode_btn_labels = {
+            'vid_vid':  '🎞️ Video + Video',
+            'vid_aud':  '🎵 Video + Audio',
+            'vid_sub':  '📝 Video + Subtitle',
+            'subsync':  '🔄 SubSync',
+            'compress': '🗜️ Compress',
+            'convert':  '♻️ Convert',
+            'watermark':'💧 Watermark',
+            'extract':  '📤 Extract',
+            'trim':     '✂️ Trim',
+            'rmstream': '🚫 Remove Stream',
+        }
         if not mode:
             vid_modes = dict(list(VID_MODE.items())[4:]) if self._isLink else VID_MODE
             for key, value in vid_modes.items():
-                buttons.button_data(f"{'🔥 ' if self.mode == key else ''}{value}", f'vidtool {key}')
-            buttons.button_data(f'{"🔥 " if self.newname else ""}Rename', 'vidtool rename', 'header')
-            buttons.button_data('Cancel', 'vidtool cancel', 'footer')
+                label = mode_btn_labels.get(key, value)
+                buttons.button_data(f"{'✅ ' if self.mode == key else ''}{label}", f'vidtool {key}')
+            buttons.button_data(f'{"✅ " if self.newname else "✏️ "}Rename', 'vidtool rename', 'header')
+            buttons.button_data('❌ Cancel', 'vidtool cancel', 'footer')
             if self.mode:
-                buttons.button_data('Done', 'vidtool done', 'footer')
+                buttons.button_data('✔️ Done', 'vidtool done', 'footer')
             if self.mode in ('vid_sub', 'watermark') and await CustomFilters.sudo('', self.listener.message):
                 hardsub = self.extra_data.get('hardsub')
-                buttons.button_data(f"{'🔥 ' if hardsub else ''}Hardsub", 'vidtool hardsub', 'header')
+                buttons.button_data(f"{'✅ ' if hardsub else '🔥 '}Hardsub", 'vidtool hardsub', 'header')
                 if hardsub:
                     if self.mode == 'watermark':
-                        buttons.button_data(f"{'🔥 ' if await aiopath.exists(self.extra_data.get('subfile', '')) else ''}Sub File", 'vidtool subfile', 'header')
-                    buttons.button_data('Font Style', 'vidtool fontstyle', 'header')
+                        has_sub = await aiopath.exists(self.extra_data.get('subfile', ''))
+                        buttons.button_data(f"{'✅ ' if has_sub else '📄 '}Sub File", 'vidtool subfile', 'header')
+                    buttons.button_data('🅰️ Font Style', 'vidtool fontstyle', 'header')
 
             if self.mode in ('compress', 'watermark') or self.extra_data.get('hardsub'):
-                buttons.button_data('Quality', 'vidtool quality', 'header')
+                buttons.button_data('📺 Quality', 'vidtool quality', 'header')
             if self.mode == 'watermark':
-                buttons.button_data('Popup', 'vidtool popupwm', 'header')
+                buttons.button_data('💫 Popup', 'vidtool popupwm', 'header')
         else:
             def _buttons_style(name=True, size=True, colour=True, position='header', cb='fontstyle'):
                 if name:
-                    buttons.button_data('Font Name', 'vidtool fontstyle fontname', position)
+                    buttons.button_data('🔤 Font Name', 'vidtool fontstyle fontname', position)
                 if size:
-                    buttons.button_data('Font Size', 'vidtool fontstyle fontsize', position)
+                    buttons.button_data('🔡 Font Size', 'vidtool fontstyle fontsize', position)
                 if colour:
-                    buttons.button_data('Font Colour', 'vidtool fontstyle fontcolour', position)
-                buttons.button_data('<<', f'vidtool {cb}', 'footer')
-                buttons.button_data('Done', 'vidtool done', 'footer')
+                    buttons.button_data('🎨 Font Colour', 'vidtool fontstyle fontcolour', position)
+                buttons.button_data('« Back', f'vidtool {cb}', 'footer')
+                buttons.button_data('✔️ Done', 'vidtool done', 'footer')
 
             match mode:
                 case 'subsync':
-                    buttons.button_data('Manual', 'vidtool sync_manual')
-                    buttons.button_data('Auto', 'vidtool sync_auto')
+                    buttons.button_data('🛠️ Manual', 'vidtool sync_manual')
+                    buttons.button_data('⚡ Auto', 'vidtool sync_auto')
                 case 'quality':
                     bnum = 3
-                    [buttons.button_data(f"{'🔥 ' if self.extra_data.get('quality') == key else ''}{key}", f'vidtool quality {key}') for key in ['1080p', '720p', '540p', '480p', '360p']]
-                    buttons.button_data('<<', 'vidtool back', 'footer')
-                    buttons.button_data('Done', 'vidtool done', 'footer')
+                    [buttons.button_data(f"{'✅ ' if self.extra_data.get('quality') == key else ''}{key}", f'vidtool quality {key}') for key in ['1080p', '720p', '540p', '480p', '360p']]
+                    buttons.button_data('« Back', 'vidtool back', 'footer')
+                    buttons.button_data('✔️ Done', 'vidtool done', 'footer')
                 case 'popupwm':
                     bnum, popupwm = 5, self.extra_data.get('popupwm', 0)
                     if popupwm:
-                        buttons.button_data('Reset', 'vidtool popupwm 0', 'header')
-                    [buttons.button_data(f"{'🔥 ' if popupwm == key else ''}{key}", f'vidtool popupwm {key}') for key in range(2, 21, 2)]
-                    buttons.button_data('<<', 'vidtool back', 'footer')
-                    buttons.button_data('Done', 'vidtool done', 'footer')
+                        buttons.button_data('🔄 Reset', 'vidtool popupwm 0', 'header')
+                    [buttons.button_data(f"{'✅ ' if popupwm == key else ''}{key}", f'vidtool popupwm {key}') for key in range(2, 21, 2)]
+                    buttons.button_data('« Back', 'vidtool back', 'footer')
+                    buttons.button_data('✔️ Done', 'vidtool done', 'footer')
                 case 'wmsize':
                     bnum = 3
-                    [buttons.button_data(str(btn), f'vidtool wmsize {btn}') for btn in [5, 10, 15, 20, 25, 30]]
+                    [buttons.button_data(f"{'✅ ' if str(btn) == str(self.extra_data.get('wmsize')) else ''}{btn}", f'vidtool wmsize {btn}') for btn in [5, 10, 15, 20, 25, 30]]
                 case 'fontstyle':
                     bnum = 3
                     _buttons_style(position=None, cb='back')
-                    buttons.button_data(f"{'🔥 ' if self.extra_data.get('boldstyle') else ''}Bold Style", f"vidtool fontstyle boldstyle {self.extra_data.get('boldstyle', False)}", 'header')
+                    buttons.button_data(f"{'✅ ' if self.extra_data.get('boldstyle') else '🅱️ '}Bold Style", f"vidtool fontstyle boldstyle {self.extra_data.get('boldstyle', False)}", 'header')
                 case 'fontname':
                     _buttons_style(name=False)
-                    [buttons.button_data(f"{'🔥 ' if btn == self.extra_data.get('fontname') else ''}{btn.replace('_', ' ')}", f'vidtool fontstyle fontname {btn}')
+                    [buttons.button_data(f"{'✅ ' if btn == self.extra_data.get('fontname') else ''}{btn.replace('_', ' ')}", f'vidtool fontstyle fontname {btn}')
                      for btn in ['Arial', 'Impact', 'Verdana', 'Consolas', 'DejaVu_Sans', 'Comic_Sans_MS', 'Simple_Day_Mistu']]
                 case 'fontsize':
                     bnum = 5
                     _buttons_style(size=False)
-                    [buttons.button_data(f"{'🔥 ' if str(btn) == self.extra_data.get('fontsize') else ''}{btn}", f'vidtool fontstyle fontsize {btn}') for btn in range(11, 31)]
+                    [buttons.button_data(f"{'✅ ' if str(btn) == str(self.extra_data.get('fontsize')) else ''}{btn}", f'vidtool fontstyle fontsize {btn}') for btn in range(11, 31)]
                 case 'fontcolour':
                     bnum = 3
                     _buttons_style(colour=False)
-                    colours = [('Red', '0000ff'), ('Green', '00ff00'), ('Blue', 'ff0000'), ('Yellow', '00ffff'), ('Orange', '0054ff'), ('Purple', '005aff'),
-                               ('Soft Red', 'd470ff'), ('Soft Green', '80ff80'), ('Soft Blue', 'ffb84d'), ('Soft Yellow', '80ffff')]
-                    [buttons.button_data(f"{'🔥 ' if hexcolour == self.extra_data.get('fontcolour') else ''}{btn}", f'vidtool fontstyle fontcolour {hexcolour}') for btn, hexcolour in colours]
+                    colours = [('🔴 Red', '0000ff'), ('🟢 Green', '00ff00'), ('🔵 Blue', 'ff0000'), ('🟡 Yellow', '00ffff'),
+                               ('🟠 Orange', '0054ff'), ('🟣 Purple', '005aff'),
+                               ('🌸 Soft Red', 'd470ff'), ('🍃 Soft Green', '80ff80'),
+                               ('💧 Soft Blue', 'ffb84d'), ('🌼 Soft Yellow', '80ffff')]
+                    [buttons.button_data(f"{'✅ ' if hexcolour == self.extra_data.get('fontcolour') else ''}{btn}", f'vidtool fontstyle fontcolour {hexcolour}') for btn, hexcolour in colours]
                 case 'wmposition':
-                    buttons.button_data('Top Left', 'vidtool wmposition 5:5')
-                    buttons.button_data('Top Right', 'vidtool wmposition main_w-overlay_w-5:5')
-                    buttons.button_data('Bottom Left', 'vidtool wmposition 5:main_h-overlay_h')
-                    buttons.button_data('Bottom Right', 'vidtool wmposition w-overlay_w-5:main_h-overlay_h-5')
+                    cur = self.extra_data.get('wmposition')
+                    positions = [('↖️ Top Left', '5:5'),
+                                 ('↗️ Top Right', 'main_w-overlay_w-5:5'),
+                                 ('↙️ Bottom Left', '5:main_h-overlay_h'),
+                                 ('↘️ Bottom Right', 'w-overlay_w-5:main_h-overlay_h-5')]
+                    for label, val in positions:
+                        buttons.button_data(f"{'✅ ' if cur == val else ''}{label}", f'vidtool wmposition {val}')
                 case _:
-                    buttons.button_data('<<', 'vidtool back', 'footer')
+                    buttons.button_data('« Back', 'vidtool back', 'footer')
 
         await self._send_message(self._captions(mode), buttons.build_menu(bnum, 3))
 
