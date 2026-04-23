@@ -76,7 +76,7 @@ async def generate_ddl(_, message: Message):
         if not no_data:
             await deleteMessage(message, reply_to)
     else:
-        await sendMessage('This mode has been disabled!', message)
+        await sendMessage('🚫 <b>This mode has been disabled!</b>', message)
 
 
 bot.add_handler(MessageHandler(generate_ddl, command(BotCommands.DdlsCommand) & CustomFilters.authorized))
