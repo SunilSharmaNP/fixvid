@@ -26,12 +26,15 @@ async def medinfo(_, message: Message):
             buttons.button_link('Media Info', result)
             if not media:
                 buttons.button_link('Source', link)
-            await editPhoto(f'<b>MEDIA INFO RESULT</b>\n<code>{get_url_name(link)}</code>\n<b>Size:</b> {get_readable_file_size(size)}',
-                            msg, img, buttons.build_menu(1))
+            text = ('<blockquote>┌━━━«★彡 <b>MEDIA INFO</b> 彡★»━━━\n'
+                    f'├ 📄 <b>Name :</b> <code>{get_url_name(link)}</code>\n'
+                    f'├ 💾 <b>Size :</b> <i>{get_readable_file_size(size)}</i>\n'
+                    '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
+            await editPhoto(text, msg, img, buttons.build_menu(1))
         else:
-            await editPhoto('Error when getting info!', msg, img)
+            await editPhoto('❌ <b>Error fetching media info!</b>', msg, img)
     else:
-        await sendMessage('Send command along with link or by reply to the link/media!', message)
+        await sendMessage('⚠️ <b>Send the command with a link, or reply to a link / media file!</b>', message)
     if cmsg:
         await deleteMessage(cmsg)
 bot.add_handler(MessageHandler(medinfo, command(BotCommands.MediaInfoCommand) & CustomFilters.authorized))
