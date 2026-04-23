@@ -308,7 +308,7 @@ class YtDlp(TaskListener):
             isBulk = True
 
         if config_dict['PREMIUM_MODE'] and not is_premium_user(self.user_id) and (self.multi > 0 or isBulk):
-            await sendMessage('Upss, multi/bulk mode for premium user only', self.message)
+            await sendMessage('💎 <b>Multi / Bulk mode is for Premium users only!</b>', self.message)
             return
 
         if not isBulk:
@@ -341,7 +341,7 @@ class YtDlp(TaskListener):
         self.link = self.link or get_link(self.message)
 
         if not is_url(self.link):
-            msg = await sendMessage(f'Invalid argument, type /{BotCommands.HelpCommand} for more details.', self.message)
+            msg = await sendMessage(f'❌ <b>Invalid argument!</b>\nType <code>/{BotCommands.HelpCommand}</code> for more details.', self.message)
             await auto_delete_message(self.message, msg)
             self.removeFromSameDir()
             self.run_multi(input_list, folder_name, YtDlp)
@@ -350,7 +350,7 @@ class YtDlp(TaskListener):
         if 'mdisk.me' in self.link:
             name, self.link = await _mdisk(self.link, name)
 
-        self.editable = await sendMessage('<i>Checking for <b>YT-DLP</b> link, please wait...</i>', self.message)
+        self.editable = await sendMessage('⏳ <i>Checking <b>YT-DLP</b> link, please wait...</i>', self.message)
         if self.link:
             await sleep(0.5)
 
