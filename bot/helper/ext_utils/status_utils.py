@@ -145,44 +145,61 @@ def get_readable_message(sid: int, is_user: bool, page_no: int=1, status : str='
     start_position = (page_no - 1) * STATUS_LIMIT
     for index, task in enumerate(tasks[start_position:STATUS_LIMIT + start_position], start=1):
         tstatus = task.status()
-        msg += f'<b>{index+start_position}.</b> <code>{escape(str(task.name())) or "N/A"}</code>'
+        # Title line (Tittle :)
         if task.listener.isSuperChat:
             reply_to = task.listener.message.reply_to_message
             link = task.listener.message.link if not reply_to or getattr(reply_to.from_user, 'is_bot', None) else reply_to.link
-            msg += f'\n\n<b>┌ <a href="{link}"><i>{tstatus}...</i></a></b>'
+            msg += f'\n🎬 <b>Tittle :</b> <a href="{link}"><code>{escape(str(task.name())) or "N/A"}</code></a>'
         else:
-            msg += f'\n<b>┌ <i>{tstatus}...</i></b>'
-        ext_msg = (f'\n<b>├ Engine:<i> {task.engine()}</i></b>'
-                   f'\n<b>├ By:</b> <a href="https://t.me/{task.listener.message.from_user.username}">{task.listener.message.from_user.first_name}</a>' if task.listener.isSuperChat else ''
-                   f'\n<b>├ Action:</b> {action(task.listener.message)}')
+            msg += f'\n🎬 <b>Tittle :</b> <code>{escape(str(task.name())) or "N/A"}</code>'
+        # Decorative top border
+        msg += '\n┌━━━«★彡 <b>SS Bots</b> 彡★»━━━'
         if tstatus not in [MirrorStatus.STATUS_SEEDING, MirrorStatus.STATUS_METADATA, MirrorStatus.STATUS_SUBSYNC]:
-            msg += (f'\n<b>├ </b>{get_progress_bar_string(task.progress())}'
-                    f'\n<b>├ Progress:</b> {task.progress()}')
+            msg += (f'\n├ {get_progress_bar_string(task.progress())} {task.progress()}'
+                    f'\n├ ⚡ <b>Processed :</b> {task.processed_bytes()} of {task.size()}'
+                    f'\n├ ⌛ <b>Status :</b> <i>{tstatus}</i>'
+                    f'\n├ ⏳ <b>Eta :</b> {task.eta() or "-"}'
+                    f'\n├ 🍀 <b>Speed :</b> {task.speed()}'
+                    f'\n├ 🕒 <b>Elapsed :</b> {task.elapsed() or "~"}'
+                    f'\n├ ⚙️ <b>Engine :</b> <i>{task.engine()}</i>'
+                    f'\n├ 🌐 <b>Mode :</b> {action(task.listener.message)}')
             if tstatus == MirrorStatus.STATUS_SPLITTING and task.listener.isLeech:
-                msg += f'\n<b>├ Split Size:</b> {get_readable_file_size(task.listener.splitSize)}'
-            msg += (f'\n<b>├ Processed:</b> {task.processed_bytes()}'
-                    f'\n<b>├ Total Size:</b> {task.size()}'
-                    f'\n<b>├ Speed:</b> {task.speed()}'
-                    f'\n<b>├ ETA:</b> {task.eta() or "~"}'
-                    f'\n<b>├ Elapsed: </b>{task.elapsed() or "~"}')
+                msg += f'\n├ ✂️ <b>Split Size :</b> {get_readable_file_size(task.listener.splitSize)}'
             if tstatus == MirrorStatus.STATUS_WAIT:
-                msg += f'\n<b>├ Timeout: </b>{task.timeout()}'
+                msg += f'\n├ ⏰ <b>Timeout :</b> {task.timeout()}'
             if hasattr(task, 'seeders_num'):
                 try:
-                    msg += f'\n<b>├ S/L:</b> {task.seeders_num()}/{task.leechers_num()}'
+                    msg += f'\n├ 🌱 <b>S/L :</b> {task.seeders_num()}/{task.leechers_num()}'
                 except:
                     pass
         elif tstatus == MirrorStatus.STATUS_SEEDING:
-            msg += (f'\n<b>├ Size:</b> {task.size()}'
-                    f'\n<b>├ Speed:</b> {task.upload_speed()}'
-                    f'\n<b>├ Uploaded:</b> {task.uploaded_bytes()}'
-                    f'\n<b>├ Ratio:</b> {task.ratio()}'
-                    f'\n<b>├ Time:</b> {task.seeding_time()}'
-                    f'\n<b>├ S/L:</b> {task.seeders_num()}/{task.leechers_num()}')
+            msg += (f'\n├ ⌛ <b>Status :</b> <i>{tstatus}</i>'
+                    f'\n├ 📦 <b>Size :</b> {task.size()}'
+                    f'\n├ 🍀 <b>Speed :</b> {task.upload_speed()}'
+                    f'\n├ ⬆️ <b>Uploaded :</b> {task.uploaded_bytes()}'
+                    f'\n├ ♻️ <b>Ratio :</b> {task.ratio()}'
+                    f'\n├ 🕒 <b>Time :</b> {task.seeding_time()}'
+                    f'\n├ 🌱 <b>S/L :</b> {task.seeders_num()}/{task.leechers_num()}'
+                    f'\n├ ⚙️ <b>Engine :</b> <i>{task.engine()}</i>'
+                    f'\n├ 🌐 <b>Mode :</b> {action(task.listener.message)}')
         else:
-            msg += (f'\n<b>├ Size:</b> {task.size()}'
-                    f'\n<b>├ Elapsed:</b> {task.elapsed() or "~"}')
-        msg += f'{ext_msg}\n<b>└ </b><code>/{BotCommands.CancelTaskCommand} {task.gid()}</code>\n\n'
+            msg += (f'\n├ ⌛ <b>Status :</b> <i>{tstatus}</i>'
+                    f'\n├ 📦 <b>Size :</b> {task.size()}'
+                    f'\n├ 🕒 <b>Elapsed :</b> {task.elapsed() or "~"}'
+                    f'\n├ ⚙️ <b>Engine :</b> <i>{task.engine()}</i>'
+                    f'\n├ 🌐 <b>Mode :</b> {action(task.listener.message)}')
+        # User + ID + cancel link
+        if task.listener.isSuperChat and getattr(task.listener.message, 'from_user', None):
+            uname = task.listener.message.from_user.username
+            fname = escape(str(task.listener.message.from_user.first_name or 'User'))
+            uid = task.listener.message.from_user.id
+            if uname:
+                msg += f'\n├ 👤 <b>User :</b> <a href="https://t.me/{uname}">{fname}</a>'
+            else:
+                msg += f'\n├ 👤 <b>User :</b> <a href="tg://user?id={uid}">{fname}</a>'
+            msg += f'\n├ 🆔 <b>ID :</b> <code>{uid}</code>'
+        msg += f'\n├ <code>/{BotCommands.CancelTaskCommand} {task.gid()}</code>'
+        msg += '\n└━━━«★彡 <b>SS Bots</b> 彡★»━━━\n\n'
 
     if not msg:
         if status == 'All':
@@ -216,8 +233,10 @@ def get_readable_message(sid: int, is_user: bool, page_no: int=1, status : str='
     buttons.button_data('♻️', f'status {sid} ref', 'header')
     if is_user:
         buttons.button_data('✘', f'status {sid} cls', 'header')
-    msg += ('▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n'
-            f'<b>CPU:</b> {cpu_percent()}% <b>| RAM:</b> {virtual_memory().percent}% <b>| FREE:</b> {get_readable_file_size(disk_usage(config_dict["DOWNLOAD_DIR"]).free)}\n'
-            f'<b>IN:</b> {get_readable_file_size(net_io_counters().bytes_recv)}<b> | OUT:</b> {get_readable_file_size(net_io_counters().bytes_sent)}\n'
-            f'<b>DL:</b> {get_readable_file_size(dl_speed)}/s<b> | UL:</b> {get_readable_file_size(up_speed)}/s <b>|</b> {get_readable_time(time() - botStartTime)}')
+    free_disk = get_readable_file_size(disk_usage(config_dict["DOWNLOAD_DIR"]).free)
+    used_pct = disk_usage(config_dict["DOWNLOAD_DIR"]).percent
+    msg += ('🖥 <b>SS Bots Stats</b> °*°✩°✿\n'
+            f'🖥 <b>CPU:</b> {cpu_percent()}% | 💾 <b>F:</b> {free_disk} [{used_pct}%]\n'
+            f'🥩 <b>RAM:</b> {virtual_memory().percent}% | ⌛ <b>Uptime:</b> {get_readable_time(time() - botStartTime)}\n'
+            f'↳ ▼ <b>DL:</b> {get_readable_file_size(dl_speed)}/s | ▲ <b>UL:</b> {get_readable_file_size(up_speed)}/s')
     return f'<blockquote>{msg}</blockquote>', buttons.build_menu(6)
