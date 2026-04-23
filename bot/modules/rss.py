@@ -285,7 +285,7 @@ async def rssGet(_, message: Message, query: CallbackQuery):
                     await editMessage(item_info, msg)
             except IndexError as e:
                 LOGGER.error(e)
-                await editMessage('Parse depth exceeded. Try again with a lower value.', msg)
+                await editMessage('⚠️ <b>Parse depth exceeded. Please try again with a lower value.</b>', msg)
             except Exception as e:
                 LOGGER.error(e)
                 await editMessage(str(e), msg)
@@ -304,11 +304,11 @@ async def rssEdit(_, message: Message, query: CallbackQuery):
         args = item.split()
         title = args[0].strip()
         if len(args) < 2:
-            msg = await sendMessage(f'{item}. Wrong Input format. Read help message before editing!', message)
+            msg = await sendMessage(f'⚠️ <b>{item}</b> — Wrong input format. Please read the help message before editing!', message)
             _auto_delete(message, msg)
             continue
         if not rss_dict[user_id].get(title, False):
-            msg = await sendMessage('Enter a valid title. Title not found!', message)
+            msg = await sendMessage('⚠️ <b>Enter a valid title — title not found!</b>', message)
             _auto_delete(message, msg)
             continue
         updated = True
@@ -412,7 +412,7 @@ async def rssListener(client: Client, query: CallbackQuery):
                 buttons.button_data('Close', f'rss close {user_id}')
                 pfunc = partial(rssGet, query=query)
                 await gather(query.answer().
-                             editMessage('Send one title with value separated by space get last X items.\nTitle Value\n\n<i>Timeout: 60s.</i>', message, buttons.build_menu(2)),
+                             editMessage('📥 <b>Send one title with value separated by space to get last X items.</b>\n<code>Title Value</code>\n\n⏱️ <i>Timeout: 60s</i>', message, buttons.build_menu(2)),
                              event_handler(client, query, pfunc))
         case 'unsubscribe' | 'pause' | 'resume' as value:
             handler_dict[user_id] = False
