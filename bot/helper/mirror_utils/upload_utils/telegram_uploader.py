@@ -6,7 +6,7 @@ from logging import getLogger
 from natsort import natsorted
 from os import path as ospath, walk
 from PIL import Image
-from pyrogram.errors import FloodWait, RPCError, PeerIdInvalid, ChannelInvalid
+from pyrogram.errors import FloodWait, RPCError
 from pyrogram.types import InputMediaVideo, InputMediaDocument, InputMediaPhoto, Message
 from re import match as re_match
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type, RetryError
@@ -339,48 +339,67 @@ class TgUploader:
     # ===========================================================================================================
 
     # ================================================= MESSAGE =================================================
-    @handle_message
     async def _msg_to_reply(self):
+        # IMPORTANT: This function MUST always set self._send_msg to a valid Message
+        # object, otherwise _upload_file() will crash with
+        #   AttributeError: 'NoneType' object has no attribute 'chat'
+        # We therefore catch ALL exceptions here (Pyrofork wraps PeerIdInvalid in
+        # different ways across versions, and the @handle_message decorator
+        # silently swallows exceptions which would leave _send_msg as None).
+        self._send_msg = None
         if self._leech_log and self._leech_log != self._listener.message.chat.id:
             caption = f'<b>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n{self._listener.name}\n▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</b>'
-            # Warm up Pyrogram peer cache to avoid PeerIdInvalid on dump/log channel.
-            # If the bot was restarted and hasn't seen any update from this chat yet,
-            # sending directly to its ID throws PeerIdInvalid. Calling get_chat()
-            # forces resolve_peer() and caches the peer for the rest of the session.
-            for attempt in range(2):
-                try:
-                    await bot.get_chat(self._leech_log)
-                    break
-                except (PeerIdInvalid, ChannelInvalid) as e:
-                    LOGGER.warning('LEECH_LOG peer not resolved (%s), retry %s/2', e, attempt + 1)
-                    await sleep(2)
-                except Exception as e:
-                    LOGGER.warning('LEECH_LOG get_chat failed: %s', e)
-                    break
+            # If a userbot session is available, prefer it to send to LEECH_LOG.
+            # Bots cannot resolve a channel peer on their own — they only learn
+            # about a channel after they receive an update from it. Userbots
+            # (regular accounts) can resolve any chat they are a member of, so
+            # using the userbot here makes LEECH_LOG work even on a fresh
+            # restart with new (-100xxxxxxxxxx) channel IDs that bots cannot
+            # resolve via get_chat().
+            sender = bot
             try:
-                if self._thumb and await aiopath.exists(self._thumb):
-                    self._send_msg: Message = await bot.send_photo(self._leech_log, photo=self._thumb, caption=caption)
-                else:
-                    self._send_msg: Message = await bot.send_message(self._leech_log, caption, disable_web_page_preview=True)
-            except (PeerIdInvalid, ChannelInvalid) as e:
-                LOGGER.error('LEECH_LOG (%s) PeerIdInvalid: %s. Falling back to current chat. '
-                             'Make sure the bot is added to the LEECH_LOG channel as admin.',
-                             self._leech_log, e)
-                self._send_msg: Message = await bot.get_messages(self._listener.message.chat.id, self._listener.mid)
-                if not self._send_msg or not self._send_msg.chat:
-                    self._send_msg = self._listener.message
-                return
-            if config_dict['LEECH_INFO_PIN']:
+                ub = bot_dict.get('USERBOT')
+                if ub:
+                    sender = ub
+            except Exception:
+                sender = bot
+            try:
+                # Best-effort warm-up. Ignore any failure — the actual send
+                # below is what we care about and it has its own retry path.
                 try:
-                    await self._send_msg.pin(both_sides=True)
+                    await sender.get_chat(self._leech_log)
                 except Exception as e:
-                    LOGGER.warning('LEECH_INFO_PIN failed: %s', e)
-        else:
-            self._send_msg: Message = await bot.get_messages(self._listener.message.chat.id, self._listener.mid)
-            if not self._send_msg or not self._send_msg.chat:
+                    LOGGER.warning('LEECH_LOG warm-up get_chat failed (%s); proceeding to send anyway', e)
+                if self._thumb and await aiopath.exists(self._thumb):
+                    self._send_msg = await sender.send_photo(self._leech_log, photo=self._thumb, caption=caption)
+                else:
+                    self._send_msg = await sender.send_message(self._leech_log, caption, disable_web_page_preview=True)
+                if self._send_msg and config_dict['LEECH_INFO_PIN']:
+                    try:
+                        await self._send_msg.pin(both_sides=True)
+                    except Exception as e:
+                        LOGGER.warning('LEECH_INFO_PIN failed: %s', e)
+            except Exception as e:
+                # Includes PeerIdInvalid / ChannelInvalid / FloodWait edge cases.
+                LOGGER.error('Cannot send to LEECH_LOG (%s): %s. Falling back to current chat. '
+                             'Fix: add a USERBOT session string, or post any message in that channel '
+                             'manually once so the bot caches the peer, or use a channel ID the bot '
+                             'has already received an update from.', self._leech_log, e)
+                self._send_msg = None
+        # Universal fallback — make absolutely sure _send_msg is a real Message.
+        if self._send_msg is None:
+            try:
+                self._send_msg = await bot.get_messages(self._listener.message.chat.id, self._listener.mid)
+            except Exception as e:
+                LOGGER.warning('get_messages fallback failed (%s); using listener.message', e)
+                self._send_msg = None
+            if not self._send_msg or not getattr(self._send_msg, 'chat', None):
                 self._send_msg = self._listener.message
         if self._send_msg and self._log_title and self._listener.upDest:
-            await self._copy_Leech(self._listener.upDest, self._send_msg)
+            try:
+                await self._copy_Leech(self._listener.upDest, self._send_msg)
+            except Exception as e:
+                LOGGER.warning('_copy_Leech to upDest failed: %s', e)
 
     @handle_message
     async def _send_media_group(self, msgs: list[Message], subkey: str, key: str):
