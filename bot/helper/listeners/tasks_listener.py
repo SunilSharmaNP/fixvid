@@ -245,9 +245,9 @@ class TaskListener(TaskConfig):
                 await sendMedia(msg, chat_id, reply_to)
             else:
                 await sendCustom(msg, chat_id)
-        msg = f'<a href="https://t.me/SharkToonsIndia"><b><i>Bot By Shark Toons India</b></i></a>\n'
-        msg += f'<code>{escape(self.name)}</code>\n'
-        msg += f'<b>┌ Size: </b>{size}\n'
+        # SS Bots styled completion message (matches reference UI)
+        elapsed_time = get_readable_time(time() - self.message.date.timestamp())
+        msg = f'🎬 <b>Tittle :</b> <code>{escape(self.name)}</code>\n\n'
         if self.isLeech:
             if config_dict['SOURCE_LINK']:
                 scr_link = get_link(self.message)
@@ -260,13 +260,17 @@ class TaskListener(TaskConfig):
                     buttons.button_link('Source Link', scr_link)
                     buttons_scr.button_link('Source Link', scr_link)
             if self.user_dict.get('enable_pm') and self.isSuperChat:
-                buttons.button_link('View File(s)', f'http://t.me/{bot_name}')
-            msg += f'<b>├ Total Files: </b>{folders}\n'
+                buttons.button_link('📩 View in Bot PM', f'http://t.me/{bot_name}')
+            msg += f'┌ 📦 <b>Size :</b> {size}\n'
+            msg += f'├ ⏰ <b>Elapsed :</b> {elapsed_time}\n'
+            msg += f'├ 🌐 <b>Mode :</b> {action(self.message)}\n'
+            msg += f'├ 📁 <b>Total Files :</b> {folders}\n'
             if mime_type != 0:
-                msg += f'<b>├ Corrupted Files: </b>{mime_type}\n'
-            msg += (f'<b>├ Elapsed: </b>{get_readable_time(time() - self.message.date.timestamp())}\n'
-                    f'<b>├ Cc: </b>{self.tag}\n'
-                    f'<b>└ Action: </b>{action(self.message)}\n\n')
+                msg += f'├ ⚠️ <b>Corrupted Files :</b> {mime_type}\n'
+            msg += f'└ ✨ <b>By :</b> {self.tag}\n\n'
+            msg += '──◆|彡 <b>Powered By : SS Bots</b> 彡|◆──\n\n'
+            if self.user_dict.get('enable_pm') and self.isSuperChat:
+                msg += '📩 <b>File(s) Have been Sent to Bot PM</b>\n'
                 #    f'<b>├ Add: </b>{dt_date}\n'
                 #    f'<b>└ At: </b>{dt_time} ({TIME_ZONE_TITLE})\n\n')
             ONCOMPLETE_LEECH_LOG = config_dict['ONCOMPLETE_LEECH_LOG']
@@ -281,7 +285,7 @@ class TaskListener(TaskConfig):
                     await copyMessage(chat_id, uploadmsg, buttons_scr.build_menu(2))
             else:
                 result_msg = 0
-                fmsg = '<b>Leech File(s):</b>\n'
+                fmsg = ''
                 for index, (tlink, name) in enumerate(files.items(), start=1):
                     fmsg += f'{index}. <a href="{tlink}">{name}</a>\n'
                     limit.text(fmsg + msg)
