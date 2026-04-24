@@ -132,9 +132,10 @@ async def post_media_info(path: str, size: int, image=None, is_link=False):
                        f"<h4>📌 {name}</h4><br>"
                        f"{_parse_mediainfo(raw, size_str)}")
             page = await telegraph.create_page('MediaInfo X', content)
-            return page.get('url')
+            if page:
+                return page.get('url') or f"https://telegra.ph/{page.get('path', '')}"
     except Exception as e:
-        LOGGER.info(e)
+        LOGGER.error('post_media_info error: %s', e)
 
 
 async def get_document_type(path):
