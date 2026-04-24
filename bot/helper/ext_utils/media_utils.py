@@ -88,12 +88,10 @@ SECTION_EMOJI = {'General': '🗒', 'Video': '🎞', 'Audio': '🔊', 'Text': '�
 def _parse_mediainfo(raw: str, size_str: str) -> str:
     """Convert raw `mediainfo` output into HTML for graph.org.
     Each section gets its own emoji header followed by a <pre> block.
-    Each property is placed on its own line using <br> tags so the
-    key : value layout is preserved exactly as mediainfo outputs it."""
+    Padding spaces are stripped from keys so Key : Value fits on one
+    line without wrapping on narrow mobile screens."""
     tc = ''
     in_section = False
-    first_line_of_section = False
-    size_line = f"File size                                 : {size_str}"
     for line in raw.split('\n'):
         line = line.rstrip()
         matched = False
@@ -102,22 +100,27 @@ def _parse_mediainfo(raw: str, size_str: str) -> str:
                 matched = True
                 if in_section:
                     tc += '</pre><br>'
-                in_section = True
-                first_line_of_section = True
+                    in_section = False
                 tc += f"<h4>{emoji} {line.strip().replace('Text', 'Subtitle')}</h4>"
                 break
         if matched:
             continue
-        if not in_section:
-            continue
-        if line.startswith('File size'):
-            line = size_line
         if not line.strip():
             continue
-        if first_line_of_section:
+        # Strip the mediainfo 40-char key padding so Key : Value stays on one line
+        if ' : ' in line:
+            parts = line.split(' : ', 1)
+            key = parts[0].strip()
+            value = parts[1].strip()
+            if key == 'File size':
+                value = size_str
+            formatted = f"{key} : {value}"
+        else:
+            formatted = line.strip()
+        if not in_section:
             tc += '<pre>'
-            first_line_of_section = False
-        tc += line + '<br>'
+            in_section = True
+        tc += formatted + '<br>'
     if in_section:
         tc += '</pre><br>'
     return tc
