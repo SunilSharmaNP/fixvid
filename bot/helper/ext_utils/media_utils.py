@@ -82,14 +82,45 @@ async def get_media_info(path):
     return duration, artist, title
 
 
+SECTION_EMOJI = {'General': '🗒', 'Video': '🎞', 'Audio': '🔊', 'Text': '🔠', 'Menu': '🗃'}
+
+
+def _parse_mediainfo(raw: str, size_str: str) -> str:
+    """Convert raw `mediainfo` output into WZML-X styled HTML for graph.org.
+    Each section gets its own emoji header followed by a <pre> block, and the
+    File size line is replaced with the human-readable size."""
+    tc, trigger = '', False
+    size_line = f"File size                                 : {size_str}"
+    for line in raw.split('\n'):
+        matched = False
+        for section, emoji in SECTION_EMOJI.items():
+            if line.startswith(section):
+                trigger = True
+                matched = True
+                if not line.startswith('General'):
+                    tc += '</pre><br>'
+                tc += f"<h4>{emoji} {line.replace('Text', 'Subtitle')}</h4>"
+                break
+        if matched:
+            continue
+        if line.startswith('File size'):
+            line = size_line
+        if trigger:
+            tc += '<br><pre>'
+            trigger = False
+        tc += line + '\n'
+    tc += '</pre><br>'
+    return tc
+
+
 async def post_media_info(path: str, size: int, image=None, is_link=False):
     if is_link:
-        name, size = get_url_name(path), get_readable_file_size(size)
+        name, size_str = get_url_name(path), get_readable_file_size(size)
     else:
         name = ospath.basename(path)
         file_size, total_size = get_readable_file_size(await get_path_size(path)), get_readable_file_size(size)
-        size = f'{file_size}/{total_size}'
-    telepost = TelePost('Media Info')
+        size_str = f'{file_size}/{total_size}'
+    telepost = TelePost('MediaInfo X')
     img_post = config_dict['IMAGE_MEDINFO']
     if image:
         try:
@@ -98,9 +129,11 @@ async def post_media_info(path: str, size: int, image=None, is_link=False):
         except:
             pass
     try:
-        if metadata := (await cmd_exec(['mediainfo', path]))[0].replace(path, name):
-            metadata = f"<img src='{img_post}' /><b>{name}<br>Size: {size}</b><br><pre>{metadata}</pre>"
-            return await sync_to_async(telepost.create_post, metadata)
+        if raw := (await cmd_exec(['mediainfo', path]))[0].replace(path, name):
+            content = (f"<img src='{img_post}' />"
+                       f"<h4>📌 {name}</h4><br>"
+                       f"{_parse_mediainfo(raw, size_str)}")
+            return await sync_to_async(telepost.create_post, content)
     except Exception as e:
         LOGGER.info(e)
 
