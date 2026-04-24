@@ -14,7 +14,8 @@ from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async, is_premium_u
 from bot.helper.ext_utils.files_utils import ARCH_EXT, get_mime_type, get_path_size, clean_target
 from bot.helper.ext_utils.links_utils import get_url_name
 from bot.helper.ext_utils.status_utils import get_readable_file_size
-from bot.helper.ext_utils.telegraph_helper import TelePost
+from bot.helper.ext_utils.telegraph_helper import telegraph
+from html_telegraph_poster import upload_image
 
 
 def getSplitSizeBytes(size: str):
@@ -86,43 +87,28 @@ SECTION_EMOJI = {'General': '🗒', 'Video': '🎞', 'Audio': '🔊', 'Text': '�
 
 
 def _parse_mediainfo(raw: str, size_str: str) -> str:
-    """Convert raw `mediainfo` output into HTML for graph.org.
-    Each section gets its own emoji header followed by a <pre> block.
-    Padding spaces are stripped from keys so Key : Value fits on one
-    line without wrapping on narrow mobile screens."""
-    tc = ''
-    in_section = False
+    """Convert raw mediainfo text output into HTML for graph.org.
+    Mirrors the WZML-X parseinfo approach: section headers become <h4>
+    emoji titles, content goes inside <pre> blocks using newlines so
+    the original key-value column alignment is preserved."""
+    tc, trigger = '', False
+    size_line = f"File size                                 : {size_str}"
     for line in raw.split('\n'):
-        line = line.rstrip()
-        matched = False
         for section, emoji in SECTION_EMOJI.items():
-            if line.strip() == section or line.startswith(section + ' #'):
-                matched = True
-                if in_section:
+            if line.startswith(section):
+                trigger = True
+                if not line.startswith('General'):
                     tc += '</pre><br>'
-                    in_section = False
-                tc += f"<h4>{emoji} {line.strip().replace('Text', 'Subtitle')}</h4>"
+                tc += f"<h4>{emoji} {line.replace('Text', 'Subtitle')}</h4>"
                 break
-        if matched:
-            continue
-        if not line.strip():
-            continue
-        # Strip the mediainfo 40-char key padding so Key : Value stays on one line
-        if ' : ' in line:
-            parts = line.split(' : ', 1)
-            key = parts[0].strip()
-            value = parts[1].strip()
-            if key == 'File size':
-                value = size_str
-            formatted = f"{key} : {value}"
+        if line.startswith('File size'):
+            line = size_line
+        if trigger:
+            tc += '<br><pre>'
+            trigger = False
         else:
-            formatted = line.strip()
-        if not in_section:
-            tc += '<pre>'
-            in_section = True
-        tc += formatted + '<br>'
-    if in_section:
-        tc += '</pre><br>'
+            tc += line + '\n'
+    tc += '</pre><br>'
     return tc
 
 
@@ -133,11 +119,10 @@ async def post_media_info(path: str, size: int, image=None, is_link=False):
         name = ospath.basename(path)
         file_size, total_size = get_readable_file_size(await get_path_size(path)), get_readable_file_size(size)
         size_str = f'{file_size}/{total_size}'
-    telepost = TelePost('MediaInfo X')
     img_post = config_dict['IMAGE_MEDINFO']
     if image:
         try:
-            if ipost := (await sync_to_async(telepost.image_post, image))[0]:
+            if ipost := (await sync_to_async(upload_image, image)):
                 img_post = ipost
         except:
             pass
@@ -146,7 +131,8 @@ async def post_media_info(path: str, size: int, image=None, is_link=False):
             content = (f"<img src='{img_post}' />"
                        f"<h4>📌 {name}</h4><br>"
                        f"{_parse_mediainfo(raw, size_str)}")
-            return await sync_to_async(telepost.create_post, content)
+            page = await telegraph.create_page('MediaInfo X', content)
+            return page.get('url')
     except Exception as e:
         LOGGER.info(e)
 
