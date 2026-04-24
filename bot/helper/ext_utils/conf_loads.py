@@ -55,54 +55,54 @@ default_values = {'AUTO_DELETE_MESSAGE_DURATION': 30,
                   'HARDSUB_FONT_NAME': 'Simple Day Mistu',
                   'HARDSUB_FONT_SIZE': '',
                   'DISABLE_MULTI_VIDTOOLS': '',
-                  'IMAGE_ARIA': 'https://graph.org/file/24e3bbaa805d49823eddd.png',
-                  'IMAGE_AUTH': 'https://graph.org/file/e6bfb75ad099e7d3664e0.png',
-                  'IMAGE_BOLD': 'https://graph.org/file/d81b39cf4bf75b15c536b.png',
-                  'IMAGE_BYE': 'https://graph.org/file/95530c7749ebc00c5c6ed.png',
-                  'IMAGE_CANCEL': 'https://graph.org/file/86c4c933b7f106ed5edd8.png',
-                  'IMAGE_CAPTION': 'https://graph.org/file/b430ad0a09dd01895cc1a.png',
-                  'IMAGE_COMMONS_CHECK': 'https://graph.org/file/672ade2552f8b3e9e1a73.png',
+                  'IMAGE_ARIA': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_AUTH': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_BOLD': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_BYE': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_CANCEL': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_CAPTION': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_COMMONS_CHECK': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
                   'IMAGE_COMPLETE': images,
-                  'IMAGE_CONEDIT': 'https://graph.org/file/46b769fc94f22e97c0abd.png',
-                  'IMAGE_CONPRIVATE': 'https://graph.org/file/8de9925ed509c9307e267.png',
-                  'IMAGE_CONSET': 'https://graph.org/file/25ea7ae75e9ceac315826.png',
-                  'IMAGE_CONVIEW': 'https://graph.org/file/ab51c10fb28ef66482a1b.png',
-                  'IMAGE_DUMP': 'https://graph.org/file/ea990868f925440392ba7.png',
-                  'IMAGE_EXTENSION': 'https://telegra.ph/file/e0350e6414bbc0516d10d.png',
-                  'IMAGE_GD': 'https://graph.org/file/f1ebf50425a0fcb2bd01a.png',
-                  'IMAGE_HELP': 'https://graph.org/file/f75791f8ea5b7239d556d.png',
-                  'IMAGE_HTML': 'https://graph.org/file/ea4997ce8dd4500f6d488.png',
-                  'IMAGE_IMDB': 'https://telegra.ph/file/a8125cb4d68f7d185c760.png',
-                  'IMAGE_INFO': 'https://telegra.ph/file/9582c7742e7d12381947c.png',
-                  'IMAGE_ITALIC': 'https://graph.org/file/c956e4c553717a214903d.png',
-                  'IMAGE_JD': 'https://telegra.ph/file/6d138d70d1d37d84811f8.png',
-                  'IMAGE_LOGS': 'https://graph.org/file/51cb3c085a5287d909009.png',
-                  'IMAGE_MDL': 'https://telegra.ph/file/89bdb927fc0f66df6b256.png',
-                  'IMAGE_MEDINFO': 'https://graph.org/file/62b0667c1ebb0a2f28f82.png',
-                  'IMAGE_METADATA': 'https://telegra.ph/file/5159ed1c1cf34b6e8297b.png',
-                  'IMAGE_MONO': 'https://graph.org/file/b7c1ebd3ff72ef262af4c.png',
-                  'IMAGE_NORMAL': 'https://graph.org/file/e9786dbca02235e9a6899.png',
-                  'IMAGE_OWNER': 'https://graph.org/file/7d3c014629529d26f9587.png',
-                  'IMAGE_PAUSE': 'https://graph.org/file/e82080dcbd9ae6b0e62ef.png',
-                  'IMAGE_PRENAME': 'https://graph.org/file/4923724fea2d858b6eb1e.png',
-                  'IMAGE_QBIT': 'https://graph.org/file/0ff0d45c17ac52fe38298.png',
-                  'IMAGE_RCLONE': 'https://telegra.ph/file/e6daed8fd63e772a7ca10.png',
-                  'IMAGE_REMNAME': 'https://graph.org/file/dd4854271072ae2eabc59.png',
-                  'IMAGE_RSS': 'https://graph.org/file/564aee8a05d3d30bbf53d.png',
-                  'IMAGE_SEARCH': 'https://graph.org/file/8a3ae9d84662b5e163e7e.png',
-                  'IMAGE_STATS': 'https://telegra.ph/file/52d8dc6a50799c96b8b89.png',
-                  'IMAGE_STATUS': 'https://graph.org/file/75e449cbf201ad364ce39.png',
-                  'IMAGE_SUFNAME': 'https://graph.org/file/e1e2a6afdabbce19aa0f0.png',
-                  'IMAGE_TMDB': 'https://telegra.ph/file/ae6fbe49b1ba511defd13.png',
-                  'IMAGE_TXT': 'https://graph.org/file/ec2fbca54b9e41081fade.png',
-                  'IMAGE_UNAUTH': 'https://graph.org/file/06bdd8695368b8ee9edec.png',
-                  'IMAGE_UNKNOW': 'https://telegra.ph/file/b4af9bed9b588bcd331ab.png',
-                  'IMAGE_USER': 'https://graph.org/file/989709a50ac468c3a4953.png',
-                  'IMAGE_USETIINGS': 'https://graph.org/file/4e358b9a735492726a887.png',
-                  'IMAGE_VIDTOOLS': 'https://telegra.ph/file/b326080ca2ffc88b414b5.png',
-                  'IMAGE_WEL': 'https://graph.org/file/d053d5ca7fa71913aa575.png',
-                  'IMAGE_WIBU': 'https://graph.org/file/f0247d41171f08fe60288.png',
-                  'IMAGE_YT': 'https://graph.org/file/3755f52bc43d7e0ce061b.png'}
+                  'IMAGE_CONEDIT': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_CONPRIVATE': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_CONSET': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_CONVIEW': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_DUMP': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_EXTENSION': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_GD': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_HELP': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_HTML': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_IMDB': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_INFO': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_ITALIC': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_JD': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_LOGS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_MDL': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_MEDINFO': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_METADATA': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_MONO': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_NORMAL': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_OWNER': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_PAUSE': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_PRENAME': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_QBIT': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_RCLONE': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_REMNAME': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_RSS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_SEARCH': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_STATS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_STATUS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_SUFNAME': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_TMDB': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_TXT': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_UNAUTH': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_UNKNOW': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_USER': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_USETIINGS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_VIDTOOLS': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_WEL': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_WIBU': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg',
+                  'IMAGE_YT': 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg'}
 
 
 async def load_config():
@@ -332,55 +332,55 @@ async def load_config():
 
     # ============================= IMAGES =================================
     ENABLE_IMAGE_MODE = environ.get('ENABLE_IMAGE_MODE', 'True').lower() == 'true'
-    IMAGE_ARIA = environ.get('IMAGE_ARIA', 'https://graph.org/file/24e3bbaa805d49823eddd.png')
-    IMAGE_AUTH = environ.get('IMAGE_AUTH', 'https://graph.org/file/e6bfb75ad099e7d3664e0.png')
-    IMAGE_BOLD = environ.get('IMAGE_BOLD', 'https://graph.org/file/d81b39cf4bf75b15c536b.png')
-    IMAGE_BYE = environ.get('IMAGE_BYE', 'https://graph.org/file/95530c7749ebc00c5c6ed.png')
-    IMAGE_CANCEL = environ.get('IMAGE_CANCEL', 'https://graph.org/file/86c4c933b7f106ed5edd8.png')
-    IMAGE_CAPTION = environ.get('IMAGE_CAPTION', 'https://graph.org/file/b430ad0a09dd01895cc1a.png')
-    IMAGE_COMMONS_CHECK = environ.get('IMAGE_COMMONS_CHECK', 'https://graph.org/file/672ade2552f8b3e9e1a73.png')
+    IMAGE_ARIA = environ.get('IMAGE_ARIA', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_AUTH = environ.get('IMAGE_AUTH', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_BOLD = environ.get('IMAGE_BOLD', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_BYE = environ.get('IMAGE_BYE', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_CANCEL = environ.get('IMAGE_CANCEL', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_CAPTION = environ.get('IMAGE_CAPTION', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_COMMONS_CHECK = environ.get('IMAGE_COMMONS_CHECK', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
     IMAGE_COMPLETE = environ.get('IMAGE_COMPLETE', images)
-    IMAGE_CONEDIT = environ.get('IMAGE_CONEDIT', 'https://graph.org/file/46b769fc94f22e97c0abd.png')
-    IMAGE_CONPRIVATE = environ.get('IMAGE_CONPRIVATE', 'https://graph.org/file/8de9925ed509c9307e267.png')
-    IMAGE_CONSET = environ.get('IMAGE_CONSET', 'https://graph.org/file/25ea7ae75e9ceac315826.png')
-    IMAGE_CONVIEW = environ.get('IMAGE_CONVIEW', 'https://graph.org/file/ab51c10fb28ef66482a1b.png')
-    IMAGE_DUMP = environ.get('IMAGE_DUMP', 'https://graph.org/file/ea990868f925440392ba7.png')
-    IMAGE_EXTENSION = environ.get('IMAGE_EXTENSION', 'https://telegra.ph/file/e0350e6414bbc0516d10d.png')
-    IMAGE_GD = environ.get('IMAGE_GD', 'https://graph.org/file/f1ebf50425a0fcb2bd01a.png')
-    IMAGE_HELP = environ.get('IMAGE_HELP', 'https://graph.org/file/f75791f8ea5b7239d556d.png')
-    IMAGE_HTML = environ.get('IMAGE_HTML', 'https://graph.org/file/ea4997ce8dd4500f6d488.png')
-    IMAGE_IMDB = environ.get('IMAGE_IMDB', 'https://telegra.ph/file/a8125cb4d68f7d185c760.png')
-    IMAGE_INFO = environ.get('IMAGE_INFO', 'https://telegra.ph/file/9582c7742e7d12381947c.png')
-    IMAGE_ITALIC = environ.get('IMAGE_ITALIC', 'https://graph.org/file/c956e4c553717a214903d.png')
-    IMAGE_JD = environ.get('IMAGE_JD', 'https://telegra.ph/file/6d138d70d1d37d84811f8.png')
-    IMAGE_LOGS = environ.get('IMAGE_LOGS', 'https://graph.org/file/51cb3c085a5287d909009.png')
-    IMAGE_MDL = environ.get('IMAGE_MDL', 'https://telegra.ph/file/89bdb927fc0f66df6b256.png')
-    IMAGE_MEDINFO = environ.get('IMAGE_MEDINFO', 'https://graph.org/file/62b0667c1ebb0a2f28f82.png')
-    IMAGE_METADATA = environ.get('IMAGE_METADATA', 'https://telegra.ph/file/5159ed1c1cf34b6e8297b.png')
-    IMAGE_MONO = environ.get('IMAGE_MONO', 'https://graph.org/file/b7c1ebd3ff72ef262af4c.png')
-    IMAGE_NORMAL = environ.get('IMAGE_NORMAL', 'https://graph.org/file/e9786dbca02235e9a6899.png')
-    IMAGE_OWNER = environ.get('IMAGE_OWNER', 'https://graph.org/file/7d3c014629529d26f9587.png')
-    IMAGE_PAUSE = environ.get('IMAGE_PAUSE', 'https://graph.org/file/e82080dcbd9ae6b0e62ef.png')
-    IMAGE_PRENAME = environ.get('IMAGE_PRENAME', 'https://graph.org/file/9dbfc87c46c4b5d8834f4.png')
-    IMAGE_QBIT = environ.get('IMAGE_QBIT', 'https://graph.org/file/0ff0d45c17ac52fe38298.png')
-    IMAGE_RCLONE = environ.get('IMAGE_RCLONE', 'https://telegra.ph/file/e6daed8fd63e772a7ca10.png')
-    IMAGE_REMNAME = environ.get('IMAGE_REMNAME', 'https://graph.org/file/9dbfc87c46c4b5d8834f4.png')
-    IMAGE_RSS = environ.get('IMAGE_RSS', 'https://graph.org/file/564aee8a05d3d30bbf53d.png')
-    IMAGE_SEARCH = environ.get('IMAGE_SEARCH', 'https://graph.org/file/8a3ae9d84662b5e163e7e.png')
-    IMAGE_STATS = environ.get('IMAGE_STATS', 'https://graph.org/file/6026a8b1dfedfe646b39b.png')
-    IMAGE_STATUS = environ.get('IMAGE_STATUS', 'https://graph.org/file/75e449cbf201ad364ce39.png')
-    IMAGE_SUFNAME = environ.get('IMAGE_SUFNAME', 'https://graph.org/file/e1e2a6afdabbce19aa0f0.png')
-    IMAGE_TMDB = environ.get('IMAGE_TMDB', 'https://telegra.ph/file/ae6fbe49b1ba511defd13.png')
-    IMAGE_TXT = environ.get('IMAGE_TXT', 'https://graph.org/file/ec2fbca54b9e41081fade.png')
-    IMAGE_UNAUTH = environ.get('IMAGE_UNAUTH', 'https://graph.org/file/06bdd8695368b8ee9edec.png')
-    IMAGE_UNKNOW = environ.get('IMAGE_UNKNOW', 'https://telegra.ph/file/b4af9bed9b588bcd331ab.png')
-    IMAGE_USER = environ.get('IMAGE_USER', 'https://graph.org/file/989709a50ac468c3a4953.png')
-    IMAGE_USETIINGS = environ.get('IMAGE_USETIINGS', 'https://graph.org/file/4e358b9a735492726a887.png')
-    IMAGE_VIDTOOLS = environ.get('IMAGE_VIDTOOLS', 'https://telegra.ph/file/b326080ca2ffc88b414b5.png')
-    IMAGE_WEL = environ.get('IMAGE_WEL', 'https://graph.org/file/d053d5ca7fa71913aa575.png')
-    IMAGE_WIBU = environ.get('IMAGE_WIBU', 'https://graph.org/file/f0247d41171f08fe60288.png')
-    IMAGE_YT = environ.get('IMAGE_YT', 'https://graph.org/file/3755f52bc43d7e0ce061b.png')
-    IMAGE_ZIP = environ.get('IMAGE_ZIP', 'https://telegra.ph/file/4a1a17589798bc405b9c9.png')
+    IMAGE_CONEDIT = environ.get('IMAGE_CONEDIT', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_CONPRIVATE = environ.get('IMAGE_CONPRIVATE', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_CONSET = environ.get('IMAGE_CONSET', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_CONVIEW = environ.get('IMAGE_CONVIEW', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_DUMP = environ.get('IMAGE_DUMP', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_EXTENSION = environ.get('IMAGE_EXTENSION', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_GD = environ.get('IMAGE_GD', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_HELP = environ.get('IMAGE_HELP', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_HTML = environ.get('IMAGE_HTML', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_IMDB = environ.get('IMAGE_IMDB', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_INFO = environ.get('IMAGE_INFO', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_ITALIC = environ.get('IMAGE_ITALIC', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_JD = environ.get('IMAGE_JD', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_LOGS = environ.get('IMAGE_LOGS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_MDL = environ.get('IMAGE_MDL', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_MEDINFO = environ.get('IMAGE_MEDINFO', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_METADATA = environ.get('IMAGE_METADATA', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_MONO = environ.get('IMAGE_MONO', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_NORMAL = environ.get('IMAGE_NORMAL', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_OWNER = environ.get('IMAGE_OWNER', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_PAUSE = environ.get('IMAGE_PAUSE', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_PRENAME = environ.get('IMAGE_PRENAME', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_QBIT = environ.get('IMAGE_QBIT', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_RCLONE = environ.get('IMAGE_RCLONE', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_REMNAME = environ.get('IMAGE_REMNAME', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_RSS = environ.get('IMAGE_RSS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_SEARCH = environ.get('IMAGE_SEARCH', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_STATS = environ.get('IMAGE_STATS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_STATUS = environ.get('IMAGE_STATUS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_SUFNAME = environ.get('IMAGE_SUFNAME', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_TMDB = environ.get('IMAGE_TMDB', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_TXT = environ.get('IMAGE_TXT', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_UNAUTH = environ.get('IMAGE_UNAUTH', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_UNKNOW = environ.get('IMAGE_UNKNOW', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_USER = environ.get('IMAGE_USER', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_USETIINGS = environ.get('IMAGE_USETIINGS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_VIDTOOLS = environ.get('IMAGE_VIDTOOLS', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_WEL = environ.get('IMAGE_WEL', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_WIBU = environ.get('IMAGE_WIBU', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_YT = environ.get('IMAGE_YT', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
+    IMAGE_ZIP = environ.get('IMAGE_ZIP', 'https://te.legra.ph/file/4a6bfaa52dd23922e2448-8bb146c6e49437a77e.jpg')
     # ======================================================================
 
     # =========================== ACCOUNTS =================================
