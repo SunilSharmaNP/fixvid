@@ -86,30 +86,40 @@ SECTION_EMOJI = {'General': '🗒', 'Video': '🎞', 'Audio': '🔊', 'Text': '�
 
 
 def _parse_mediainfo(raw: str, size_str: str) -> str:
-    """Convert raw `mediainfo` output into WZML-X styled HTML for graph.org.
-    Each section gets its own emoji header followed by a <pre> block, and the
-    File size line is replaced with the human-readable size."""
-    tc, trigger = '', False
+    """Convert raw `mediainfo` output into HTML for graph.org.
+    Each section gets its own emoji header followed by a <pre> block.
+    Each property is placed on its own line using <br> tags so the
+    key : value layout is preserved exactly as mediainfo outputs it."""
+    tc = ''
+    in_section = False
+    first_line_of_section = False
     size_line = f"File size                                 : {size_str}"
     for line in raw.split('\n'):
+        line = line.rstrip()
         matched = False
         for section, emoji in SECTION_EMOJI.items():
-            if line.startswith(section):
-                trigger = True
+            if line.strip() == section or line.startswith(section + ' #'):
                 matched = True
-                if not line.startswith('General'):
+                if in_section:
                     tc += '</pre><br>'
-                tc += f"<h4>{emoji} {line.replace('Text', 'Subtitle')}</h4>"
+                in_section = True
+                first_line_of_section = True
+                tc += f"<h4>{emoji} {line.strip().replace('Text', 'Subtitle')}</h4>"
                 break
         if matched:
             continue
+        if not in_section:
+            continue
         if line.startswith('File size'):
             line = size_line
-        if trigger:
-            tc += '<br><pre>'
-            trigger = False
-        tc += line + '\n'
-    tc += '</pre><br>'
+        if not line.strip():
+            continue
+        if first_line_of_section:
+            tc += '<pre>'
+            first_line_of_section = False
+        tc += line + '<br>'
+    if in_section:
+        tc += '</pre><br>'
     return tc
 
 
