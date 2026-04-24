@@ -3,6 +3,7 @@ from html_telegraph_poster import TelegraphPoster, upload_image
 from random import SystemRandom
 from string import ascii_letters
 from telegraph.aio import Telegraph
+from telegraph import Telegraph as SyncTelegraph
 from telegraph.exceptions import RetryAfterError
 
 from bot import config_dict, LOGGER
@@ -61,16 +62,29 @@ class TelePost:
         self.__title = title
 
     def _create_telegraph(self):
+        # Prefer the synchronous "telegraph" library which supports
+        # creating pages with `html_content` and handles Unicode titles
+        # more reliably. Fall back to html_telegraph_poster if it fails.
         try:
-            tele = TelegraphPoster(use_api=True, telegraph_api_url='https://api.graph.org')
-            tele.create_api_token('Telegraph')
-            page = tele.post(title=self.__title,
-                             author=config_dict['AUTHOR_NAME'],
-                             author_url=config_dict['AUTHOR_URL'],
-                             text=self.__metadata)
-            return page['url']
+            sync_tele = SyncTelegraph(domain='graph.org')
+            page = sync_tele.create_page(title=self.__title,
+                                         author_name=config_dict['AUTHOR_NAME'],
+                                         author_url=config_dict['AUTHOR_URL'],
+                                         html_content=self.__metadata)
+            # create_page returns a dict containing 'url'
+            return page.get('url')
         except Exception as e:
-            LOGGER.error(e)
+            LOGGER.error('Sync Telegraph post failed, falling back: %s', e)
+            try:
+                tele = TelegraphPoster(use_api=True, telegraph_api_url='https://api.graph.org')
+                tele.create_api_token('Telegraph')
+                page = tele.post(title=self.__title,
+                                 author=config_dict['AUTHOR_NAME'],
+                                 author_url=config_dict['AUTHOR_URL'],
+                                 text=self.__metadata)
+                return page['url']
+            except Exception as e:
+                LOGGER.error(e)
 
     @staticmethod
     def image_post(image):
