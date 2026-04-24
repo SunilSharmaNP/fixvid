@@ -67,21 +67,27 @@ class TelePost:
         # more reliably. Fall back to html_telegraph_poster if it fails.
         try:
             sync_tele = SyncTelegraph(domain='graph.org')
-            # If an async TelegraphHelper created an account earlier, reuse
-            # its access token to avoid ACCESS_TOKEN_INVALID errors.
             try:
-                token_val = telegraph.access_token
-            except Exception:
-                token_val = None
-            if token_val:
-                setattr(sync_tele, 'access_token', token_val)
-                setattr(sync_tele, 'token', token_val)
-            page = sync_tele.create_page(title=self.__title,
-                                         author_name=config_dict['AUTHOR_NAME'],
-                                         author_url=config_dict['AUTHOR_URL'],
-                                         html_content=self.__metadata)
-            # create_page returns a dict containing 'url'
-            return page.get('url')
+                page = sync_tele.create_page(title=self.__title,
+                                             author_name=config_dict['AUTHOR_NAME'],
+                                             author_url=config_dict['AUTHOR_URL'],
+                                             html_content=self.__metadata)
+                return page.get('url')
+            except Exception as e:
+                LOGGER.info('Sync create_page failed, attempting to create account and retry: %s', e)
+                # Try to create a temporary account synchronously and retry posting
+                try:
+                    short_name = 'bot' + ''.join(SystemRandom().choices(ascii_letters, k=6))
+                    sync_tele.create_account(short_name=short_name,
+                                             author_name=config_dict['AUTHOR_NAME'],
+                                             author_url=config_dict['AUTHOR_URL'])
+                    page = sync_tele.create_page(title=self.__title,
+                                                 author_name=config_dict['AUTHOR_NAME'],
+                                                 author_url=config_dict['AUTHOR_URL'],
+                                                 html_content=self.__metadata)
+                    return page.get('url')
+                except Exception as e2:
+                    LOGGER.error('Sync Telegraph account create/retry failed: %s', e2)
         except Exception as e:
             LOGGER.error('Sync Telegraph post failed, falling back: %s', e)
             try:
