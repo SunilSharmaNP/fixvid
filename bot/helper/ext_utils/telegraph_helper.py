@@ -67,6 +67,15 @@ class TelePost:
         # more reliably. Fall back to html_telegraph_poster if it fails.
         try:
             sync_tele = SyncTelegraph(domain='graph.org')
+            # If an async TelegraphHelper created an account earlier, reuse
+            # its access token to avoid ACCESS_TOKEN_INVALID errors.
+            try:
+                token_val = telegraph.access_token
+            except Exception:
+                token_val = None
+            if token_val:
+                setattr(sync_tele, 'access_token', token_val)
+                setattr(sync_tele, 'token', token_val)
             page = sync_tele.create_page(title=self.__title,
                                          author_name=config_dict['AUTHOR_NAME'],
                                          author_url=config_dict['AUTHOR_URL'],
