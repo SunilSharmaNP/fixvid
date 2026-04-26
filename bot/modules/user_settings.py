@@ -951,12 +951,20 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
         # ── Video Tools: open per-tool sub-menu ──
         case 'vid_setting':
             key = data[3] if len(data) >= 4 else ''
-            if key == 'compress':
-                target_data, target_uset = 'vid_compress', None
-            elif key == 'vid_sub':
-                target_data, target_uset = 'vid_hardsub', None
-            elif key in VID_MODE:
-                target_data, target_uset = 'vid_info', key
+            _VID_SETTING_MAP = {
+                'vid_vid':   'vid_merge',
+                'vid_aud':   'vid_audmux',
+                'vid_sub':   'vid_hardsub',
+                'subsync':   'vid_subsync',
+                'compress':  'vid_compress',
+                'convert':   'vid_convert',
+                'watermark': 'vid_watermark',
+                'extract':   'vid_extract',
+                'trim':      'vid_trim',
+                'rmstream':  'vid_rmstream',
+            }
+            if key in _VID_SETTING_MAP:
+                target_data, target_uset = _VID_SETTING_MAP[key], None
             else:
                 await query.answer('Unknown tool!', True)
                 return
@@ -986,6 +994,18 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
             if vid_mode not in VID_MODE:
                 await query.answer('Unknown tool!', True)
                 return
+            _TOGGLE_BACK_MAP = {
+                'vid_vid':   'vid_merge',
+                'vid_aud':   'vid_audmux',
+                'vid_sub':   'vid_hardsub',
+                'subsync':   'vid_subsync',
+                'compress':  'vid_compress',
+                'convert':   'vid_convert',
+                'watermark': 'vid_watermark',
+                'extract':   'vid_extract',
+                'trim':      'vid_trim',
+                'rmstream':  'vid_rmstream',
+            }
             disabled = set(user_dict.get('disabled_vidtools', []))
             if vid_mode in disabled:
                 disabled.discard(vid_mode)
@@ -994,7 +1014,7 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
                 disabled.add(vid_mode)
                 await query.answer(f'{VID_MODE[vid_mode]} Disabled ❌', True)
             await update_user_ldata(user_id, 'disabled_vidtools', list(disabled))
-            await update_user_settings(query, 'vid_info', vid_mode)
+            await update_user_settings(query, _TOGGLE_BACK_MAP.get(vid_mode, 'vidtools'))
 
         # ── Video preset selections ──
         case 'set_vid264':
