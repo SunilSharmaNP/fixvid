@@ -106,6 +106,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
     token_pickle = ospath.join('tokens', f'{user_id}.pickle')
     user_dict = user_data.get(user_id, {})
     image = None
+    f_cols = 8
 
     # ═══════════════════════ MAIN MENU ═══════════════════════
     if not data:
@@ -140,6 +141,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         buttons.button_data('Video Tools',        f'userset {user_id} vidtools')
         buttons.button_data('Reset Setting', f'userset {user_id} reset_all_confirm', 'footer')
         buttons.button_data('Close',         f'userset {user_id} close',             'footer')
+        f_cols = 1
 
         text = (f'<blockquote>⊟ <b>User Settings :</b> {from_user.mention}\n'
                 f'├\n'
@@ -833,7 +835,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         buttons.button_data('« Back',  f'userset {user_id} setdata {uset_data}', 'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close',               'footer')
 
-    return text, image, buttons.build_menu(2)
+    return text, image, buttons.build_menu(2, f_cols=f_cols)
 
 
 async def update_user_settings(query: CallbackQuery, data: str = None, uset_data: str = None):
