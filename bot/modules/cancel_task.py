@@ -1,3 +1,4 @@
+import re as _re
 from asyncio import sleep, gather
 from pyrogram.filters import command, regex
 from pyrogram.handlers import CallbackQueryHandler, MessageHandler
@@ -15,9 +16,22 @@ from bot.helper.telegram_helper.message_utils import sendMessage, sendingMessage
 @new_task
 async def cancel_task(_, message: Message):
     user_id = message.from_user.id if message.from_user else message.sender_chat.id
-    msg = message.text.split()
-    if len(msg) > 1:
-        gid = msg[1]
+    text = (message.text or '').strip()
+    parts = text.split(maxsplit=1)
+    cmd_part = parts[0] if parts else ''
+    # Strip @botname if present
+    if '@' in cmd_part:
+        cmd_part = cmd_part.split('@', 1)[0]
+    gid = None
+    # Form 1: /cancel_<gid>  (clickable command form)
+    if '_' in cmd_part:
+        candidate = cmd_part.split('_', 1)[1]
+        if candidate:
+            gid = candidate
+    # Form 2: /cancel <gid>
+    elif len(parts) > 1:
+        gid = parts[1].split()[0]
+    if gid:
         if len(gid) == 4:
             multi_tags.discard(gid)
             return
@@ -33,9 +47,10 @@ async def cancel_task(_, message: Message):
             cancelmsg = await sendMessage(f'⚠️ {message.from_user.mention}, This Is Not An Active Task!', message)
             await auto_delete_message(message, cancelmsg)
             return
-    elif len(msg) == 1:
+    else:
         cancelmsg = ('<blockquote>┌━━━«★彡 <b>HOW TO CANCEL</b> 彡★»━━━\n'
                      f'├ ↩️ Reply to active <code>/{BotCommands.MirrorCommand}</code> message\n'
+                     f'├ 🆔 Or tap <code>/{BotCommands.CancelTaskCommand}_GID</code> from status\n'
                      f'├ 🆔 Or send <code>/{BotCommands.CancelTaskCommand} GID</code>\n'
                      '└━━━«★彡 <b>SS Bots</b> 彡★»━━━</blockquote>')
         cancelmsg = await sendMessage(cancelmsg, message)
@@ -147,6 +162,7 @@ async def cancel_all_update(_, query: CallbackQuery):
             await cancel_all(message, value, user_id)
 
 
-bot.add_handler(MessageHandler(cancel_task, filters=command(BotCommands.CancelTaskCommand) & CustomFilters.authorized))
+_cancel_underscore_re = rf"^/{_re.escape(BotCommands.CancelTaskCommand)}_[\w-]+(@\w+)?(\s|$)"
+bot.add_handler(MessageHandler(cancel_task, filters=(command(BotCommands.CancelTaskCommand) | regex(_cancel_underscore_re)) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(cancell_all_buttons, filters=command(BotCommands.CancelAllCommand) & CustomFilters.authorized))
 bot.add_handler(CallbackQueryHandler(cancel_all_update, filters=regex('^canall')))
