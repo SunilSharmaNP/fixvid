@@ -249,17 +249,16 @@ class TaskListener(TaskConfig):
         elapsed_time = get_readable_time(time() - self.message.date.timestamp())
         msg = f'🎬 <b>Tittle :</b> <code>{escape(self.name)}</code>\n\n'
         if self.isLeech:
+            # Source Link only on PM/log copies (buttons_scr); leech group gets "View in Bot PM" instead
             if config_dict['SOURCE_LINK']:
                 scr_link = get_link(self.message)
                 if is_magnet(scr_link):
                     tele = TelePost(config_dict['SOURCE_LINK_TITLE'])
                     mag_link = await sync_to_async(tele.create_post, f'<code>{escape(self.name)}<br>({size})</code><br>{scr_link}')
-                    buttons.button_link('Source Link', mag_link)
                     buttons_scr.button_link('Source Link', mag_link)
                 elif is_url(scr_link):
-                    buttons.button_link('Source Link', scr_link)
                     buttons_scr.button_link('Source Link', scr_link)
-            if self.user_dict.get('enable_pm') and self.isSuperChat:
+            if self.isSuperChat:
                 buttons.button_link('📩 View in Bot PM', f'http://t.me/{bot_name}')
             msg += f'┌ 📦 <b>Size :</b> {size}\n'
             msg += f'├ ⏰ <b>Elapsed :</b> {elapsed_time}\n'
