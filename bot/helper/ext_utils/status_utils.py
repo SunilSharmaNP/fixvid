@@ -125,7 +125,7 @@ def action(message: Message):
 
 
 def get_readable_message(sid: int, is_user: bool, page_no: int=1, status : str='All', page_step: int=1):
-    msg = f'<a href="https://t.me/MLTBRM"><b><i>Bot By MLTBRM</b></i></a>\n\n'
+    msg = ''
     dl_speed = up_speed = 0
 
     if status == 'All':
@@ -198,7 +198,7 @@ def get_readable_message(sid: int, is_user: bool, page_no: int=1, status : str='
             else:
                 msg += f'\n├ 👤 <b>User :</b> <a href="tg://user?id={uid}">{fname}</a>'
             msg += f'\n├ 🆔 <b>ID :</b> <code>{uid}</code>'
-        msg += f'\n├ <code>/{BotCommands.CancelTaskCommand} {task.gid()}</code>'
+        msg += f'\n├ ⛔ <b>Cancel :</b> /{BotCommands.CancelTaskCommand}_{task.gid()}'
         msg += '\n└━━━«★彡 <b>SS Bots</b> 彡★»━━━\n\n'
 
     if not msg:
