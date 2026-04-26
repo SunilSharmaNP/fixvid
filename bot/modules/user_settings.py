@@ -43,6 +43,48 @@ _VID_ICONS = {
     'rmstream':  '🗑️',
 }
 
+_VID_DESCRIPTIONS = {
+    'vid_vid':   'Merge two or more video files together into a single output video.',
+    'vid_aud':   'Mux external audio tracks (mp3 / aac / ac3) into your video file.',
+    'vid_sub':   'Hardcode (burn-in) subtitle files into your video stream permanently.',
+    'subsync':   'Synchronize external subtitles to match the video timing automatically.',
+    'compress':  'Compress / re-encode videos using x264 or x265 with custom presets and banner.',
+    'convert':   'Convert videos between formats and containers (mp4, mkv, webm, etc.).',
+    'watermark': 'Apply image or text watermark on videos with adjustable position and opacity.',
+    'extract':   'Extract specific streams (video / audio / subtitle) from the source file.',
+    'trim':      'Trim and cut video by specified start and end timestamps without re-encoding.',
+    'rmstream':  'Remove unwanted audio or subtitle streams from the video file.',
+}
+
+# Cyclable single-choice fields: tap to advance to the next option
+_VID_FIELD_OPTIONS = {
+    'vid_merge_mode':     ['sequential', 'concat'],
+    'vid_audio_codec':    ['aac', 'mp3', 'ac3', 'opus'],
+    'vid_convert_format': ['mp4', 'mkv', 'webm', 'mov'],
+    'vid_watermark_pos':  ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'],
+}
+
+# Multi-select fields: each item toggles independently
+_VID_MULTI_OPTIONS = {
+    'vid_extract_streams': ['video', 'audio', 'subtitle'],
+    'vid_rmstream_kind':   ['audio', 'subtitle'],
+}
+
+_VID_DEFAULTS = {
+    'vid_merge_mode':       'sequential',
+    'vid_audio_lang':       '',
+    'vid_audio_codec':      'aac',
+    'vid_subsync_delay':    '0',
+    'vid_convert_format':   'mp4',
+    'vid_watermark_text':   '',
+    'vid_watermark_pos':    'bottom-right',
+    'vid_watermark_opacity':'50',
+    'vid_extract_streams':  ['audio', 'subtitle'],
+    'vid_trim_start':       '00:00:00',
+    'vid_trim_end':         '00:00:00',
+    'vid_rmstream_kind':    [],
+}
+
 
 def _oo(on=True):
     return '✅' if on else '❌'
@@ -295,44 +337,214 @@ async def get_user_settings(from_user, data: str, uset_data: str):
 
     # ═══════════════════════ VIDEO TOOLS ═══════════════════════
     elif data == 'vidtools':
-        vid_264      = user_dict.get('vid_264_preset') or config_dict.get('LIB264_PRESET', 'superfast')
-        vid_265      = user_dict.get('vid_265_preset') or config_dict.get('LIB265_PRESET', 'faster')
-        vid_banner   = user_dict.get('vid_banner')     or config_dict.get('COMPRESS_BANNER', '')
-        vid_font     = user_dict.get('vid_hardsub_font') or config_dict.get('HARDSUB_FONT_NAME', '')
-        vid_fontsize = user_dict.get('vid_hardsub_size') or config_dict.get('HARDSUB_FONT_SIZE', '')
-        disabled_vids = set(user_dict.get('disabled_vidtools', []))
-
-        # All VID_MODE as toggle buttons (✅ enabled / ❌ disabled)
+        # Each tool opens its own settings sub-menu — no toggles / marks here
         for key, label in VID_MODE.items():
-            icon    = _VID_ICONS.get(key, '🎬')
-            enabled = key not in disabled_vids
-            mark    = '✅' if enabled else '❌'
-            buttons.button_data(f'{mark} {icon} {label}', f'userset {user_id} toggle_vid {key}')
+            icon = _VID_ICONS.get(key, '🎬')
+            buttons.button_data(f'{icon} {label}', f'userset {user_id} vid_setting {key}')
 
-        # Bulk toggle helpers
-        buttons.button_data('✅ Enable All',  f'userset {user_id} vid_all on',  'header')
-        buttons.button_data('❌ Disable All', f'userset {user_id} vid_all off', 'header')
-
-        # Sub-menus
-        buttons.button_data('⚙️ Compress Settings', f'userset {user_id} vid_compress', 'footer')
-        buttons.button_data('📝 HardSub Settings',  f'userset {user_id} vid_hardsub',  'footer')
         buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
-        enabled_count  = len(VID_MODE) - len(disabled_vids)
-        disabled_list  = ', '.join(VID_MODE[k] for k in disabled_vids if k in VID_MODE) or 'None'
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>Video Tools :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'└ <b>Total Tools :</b> <i>{len(VID_MODE)}</i></blockquote>\n\n'
+                 '<i>Choose any video tool below to view & manage its settings.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → MERGE (Video + Video) ═══════════════════════
+    elif data == 'vid_merge':
+        is_enabled = 'vid_vid' not in set(user_dict.get('disabled_vidtools', []))
+        merge_mode = user_dict.get('vid_merge_mode') or _VID_DEFAULTS['vid_merge_mode']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid vid_vid')
+        buttons.button_data(f'Merge Mode : {merge_mode.title()}',
+                            f'userset {user_id} vid_cycle vid_merge_mode')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
 
         image = config_dict['IMAGE_VIDTOOLS']
-        text  = (f'<blockquote>⊟ <b>Video Tools Settings :</b> {from_user.mention}\n'
+        text  = (f'<blockquote>⊟ <b>🎞️ Video + Video :</b> {from_user.mention}\n'
                  f'├\n'
-                 f'├ <b>x264 Preset :</b> <code>{vid_264}</code>\n'
-                 f'├ <b>x265 Preset :</b> <code>{vid_265}</code>\n'
-                 f'├ <b>Compress Banner :</b> <i>{vid_banner or "Default"}</i>\n'
-                 f'├ <b>HardSub Font :</b> <i>{vid_font or "Default"}</i>\n'
-                 f'├ <b>HardSub Size :</b> <i>{vid_fontsize or "Default"}</i>\n'
-                 f'├ <b>Tools Enabled :</b> <i>{enabled_count} / {len(VID_MODE)}</i>\n'
-                 f'└ <b>Disabled :</b> <i>{disabled_list}</i></blockquote>\n\n'
-                 '<i>Tap a tool to toggle it. Open Compress / HardSub for advanced options.</i>')
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'└ <b>Merge Mode :</b> <i>{merge_mode.title()}</i></blockquote>\n\n'
+                 '<i>Merge multiple videos. Sequential = play one after another, '
+                 'Concat = ffmpeg concat demuxer (faster, same codec required).</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → AUDIO MUX (Video + Audio) ═══════════════════════
+    elif data == 'vid_audmux':
+        is_enabled  = 'vid_aud' not in set(user_dict.get('disabled_vidtools', []))
+        audio_lang  = user_dict.get('vid_audio_lang')  or 'Auto'
+        audio_codec = user_dict.get('vid_audio_codec') or _VID_DEFAULTS['vid_audio_codec']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid vid_aud')
+        has_lang = bool(user_dict.get('vid_audio_lang'))
+        buttons.button_data(f'{"✅ " if has_lang else ""}Audio Language',
+                            f'userset {user_id} setdata vid_audio_lang')
+        if has_lang:
+            buttons.button_data('🗑️ Reset Language', f'userset {user_id} rem_vid_audio_lang')
+        buttons.button_data(f'Audio Codec : {audio_codec.upper()}',
+                            f'userset {user_id} vid_cycle vid_audio_codec')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>🎵 Video + Audio :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'├ <b>Audio Language :</b> <code>{audio_lang}</code>\n'
+                 f'└ <b>Audio Codec :</b> <i>{audio_codec.upper()}</i></blockquote>\n\n'
+                 '<i>Mux external audio into your video. Set ISO 639 language code '
+                 '(e.g. eng, hin, jpn) and target codec.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → SUBSYNC ═══════════════════════
+    elif data == 'vid_subsync':
+        is_enabled = 'subsync' not in set(user_dict.get('disabled_vidtools', []))
+        delay      = user_dict.get('vid_subsync_delay') or _VID_DEFAULTS['vid_subsync_delay']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid subsync')
+        has_delay = bool(user_dict.get('vid_subsync_delay'))
+        buttons.button_data(f'{"✅ " if has_delay else ""}Sync Delay (ms)',
+                            f'userset {user_id} setdata vid_subsync_delay')
+        if has_delay:
+            buttons.button_data('🗑️ Reset Delay', f'userset {user_id} rem_vid_subsync_delay')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>🔄 SubSync :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'└ <b>Sync Delay :</b> <code>{delay} ms</code></blockquote>\n\n'
+                 '<i>Adjust subtitle timing. Positive value delays subtitles, '
+                 'negative value advances them. Example: <code>-500</code> = subs appear 500ms earlier.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → CONVERT ═══════════════════════
+    elif data == 'vid_convert':
+        is_enabled = 'convert' not in set(user_dict.get('disabled_vidtools', []))
+        fmt        = user_dict.get('vid_convert_format') or _VID_DEFAULTS['vid_convert_format']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid convert')
+        for f in _VID_FIELD_OPTIONS['vid_convert_format']:
+            mark = '🔥 ' if f == fmt else ''
+            buttons.button_data(f'{mark}{f.upper()}', f'userset {user_id} vid_set vid_convert_format {f}')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>🔁 Convert :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'└ <b>Output Format :</b> <i>{fmt.upper()}</i></blockquote>\n\n'
+                 '<i>Convert videos between container formats. Tap a format below to set it as default.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → WATERMARK ═══════════════════════
+    elif data == 'vid_watermark':
+        is_enabled = 'watermark' not in set(user_dict.get('disabled_vidtools', []))
+        wm_text    = user_dict.get('vid_watermark_text')    or 'Not Set'
+        wm_pos     = user_dict.get('vid_watermark_pos')     or _VID_DEFAULTS['vid_watermark_pos']
+        wm_opa     = user_dict.get('vid_watermark_opacity') or _VID_DEFAULTS['vid_watermark_opacity']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid watermark')
+        has_text = bool(user_dict.get('vid_watermark_text'))
+        has_opa  = bool(user_dict.get('vid_watermark_opacity'))
+        buttons.button_data(f'{"✅ " if has_text else ""}Watermark Text',
+                            f'userset {user_id} setdata vid_watermark_text')
+        if has_text:
+            buttons.button_data('🗑️ Reset Text', f'userset {user_id} rem_vid_watermark_text')
+        buttons.button_data(f'Position : {wm_pos.title()}',
+                            f'userset {user_id} vid_cycle vid_watermark_pos')
+        buttons.button_data(f'{"✅ " if has_opa else ""}Opacity (%)',
+                            f'userset {user_id} setdata vid_watermark_opacity')
+        if has_opa:
+            buttons.button_data('🗑️ Reset Opacity', f'userset {user_id} rem_vid_watermark_opacity')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>💧 Watermark :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'├ <b>Text :</b> <code>{wm_text}</code>\n'
+                 f'├ <b>Position :</b> <i>{wm_pos.title()}</i>\n'
+                 f'└ <b>Opacity :</b> <i>{wm_opa}%</i></blockquote>\n\n'
+                 '<i>Apply text watermark on output videos. Set position and opacity (0-100).</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → EXTRACT ═══════════════════════
+    elif data == 'vid_extract':
+        is_enabled = 'extract' not in set(user_dict.get('disabled_vidtools', []))
+        selected   = user_dict.get('vid_extract_streams', _VID_DEFAULTS['vid_extract_streams'])
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid extract')
+        for stream in _VID_MULTI_OPTIONS['vid_extract_streams']:
+            mark = '✅' if stream in selected else '❌'
+            buttons.button_data(f'{mark} {stream.title()}',
+                                f'userset {user_id} vid_multi vid_extract_streams {stream}')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>📤 Extract :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'└ <b>Extract :</b> <i>{", ".join(s.title() for s in selected) or "None"}</i></blockquote>\n\n'
+                 '<i>Toggle which streams to extract from the source media file.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → TRIM ═══════════════════════
+    elif data == 'vid_trim':
+        is_enabled = 'trim' not in set(user_dict.get('disabled_vidtools', []))
+        t_start    = user_dict.get('vid_trim_start') or _VID_DEFAULTS['vid_trim_start']
+        t_end      = user_dict.get('vid_trim_end')   or _VID_DEFAULTS['vid_trim_end']
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid trim')
+        has_s = bool(user_dict.get('vid_trim_start'))
+        has_e = bool(user_dict.get('vid_trim_end'))
+        buttons.button_data(f'{"✅ " if has_s else ""}Start Time',
+                            f'userset {user_id} setdata vid_trim_start')
+        if has_s:
+            buttons.button_data('🗑️ Reset Start', f'userset {user_id} rem_vid_trim_start')
+        buttons.button_data(f'{"✅ " if has_e else ""}End Time',
+                            f'userset {user_id} setdata vid_trim_end')
+        if has_e:
+            buttons.button_data('🗑️ Reset End', f'userset {user_id} rem_vid_trim_end')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>✂️ Trim :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'├ <b>Start :</b> <code>{t_start}</code>\n'
+                 f'└ <b>End :</b> <code>{t_end}</code></blockquote>\n\n'
+                 '<i>Trim videos using HH:MM:SS format. Example start: <code>00:01:30</code>, '
+                 'end: <code>00:05:00</code>.</i>')
+
+    # ═══════════════════════ VIDEO TOOLS → REMOVE STREAM ═══════════════════════
+    elif data == 'vid_rmstream':
+        is_enabled = 'rmstream' not in set(user_dict.get('disabled_vidtools', []))
+        selected   = user_dict.get('vid_rmstream_kind', _VID_DEFAULTS['vid_rmstream_kind'])
+
+        buttons.button_data(f'{"❌ Disable" if is_enabled else "✅ Enable"} Tool',
+                            f'userset {user_id} toggle_vid rmstream')
+        for stream in _VID_MULTI_OPTIONS['vid_rmstream_kind']:
+            mark = '✅' if stream in selected else '❌'
+            buttons.button_data(f'{mark} Remove {stream.title()}',
+                                f'userset {user_id} vid_multi vid_rmstream_kind {stream}')
+        buttons.button_data('« Back',  f'userset {user_id} back vidtools', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',         'footer')
+
+        image = config_dict['IMAGE_VIDTOOLS']
+        text  = (f'<blockquote>⊟ <b>🗑️ Remove Stream :</b> {from_user.mention}\n'
+                 f'├\n'
+                 f'├ <b>Status :</b> <i>{"Enabled ✅" if is_enabled else "Disabled ❌"}</i>\n'
+                 f'└ <b>Removing :</b> <i>{", ".join(s.title() for s in selected) or "None"}</i></blockquote>\n\n'
+                 '<i>Toggle which stream types to strip from the output video.</i>')
 
     # ═══════════════════════ VIDEO TOOLS → COMPRESS ═══════════════════════
     elif data == 'vid_compress':
@@ -736,6 +948,20 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
               'capmode' | 'gdtool' | 'rctool') as value:
             await gather(query.answer(), update_user_settings(query, value))
 
+        # ── Video Tools: open per-tool sub-menu ──
+        case 'vid_setting':
+            key = data[3] if len(data) >= 4 else ''
+            if key == 'compress':
+                target_data, target_uset = 'vid_compress', None
+            elif key == 'vid_sub':
+                target_data, target_uset = 'vid_hardsub', None
+            elif key in VID_MODE:
+                target_data, target_uset = 'vid_info', key
+            else:
+                await query.answer('Unknown tool!', True)
+                return
+            await gather(query.answer(), update_user_settings(query, target_data, target_uset))
+
         case 'setdata':
             handler_dict[user_id] = False
             await query.answer()
@@ -754,7 +980,7 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
             stype = data[3] if len(data) >= 4 else None
             await gather(query.answer(), update_user_settings(query, stype))
 
-        # ── Video Tools: toggle per-mode ──
+        # ── Video Tools: toggle per-mode (called from per-tool info sub-menu) ──
         case 'toggle_vid':
             vid_mode = data[3]
             if vid_mode not in VID_MODE:
@@ -768,7 +994,7 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
                 disabled.add(vid_mode)
                 await query.answer(f'{VID_MODE[vid_mode]} Disabled ❌', True)
             await update_user_ldata(user_id, 'disabled_vidtools', list(disabled))
-            await update_user_settings(query, 'vidtools')
+            await update_user_settings(query, 'vid_info', vid_mode)
 
         # ── Video preset selections ──
         case 'set_vid264':
