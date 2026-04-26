@@ -501,9 +501,10 @@ def gdflix_extract_pack_links(html, base):
 def gdflix_get_instant(url):
     try:
         r = get(url, headers={"User-Agent": user_agent}, timeout=20)
+        # busycdn TLD changes (.cfd, .xyz, ...)
         return gdflix_scan(
             r.text,
-            r"https://instant\.busycdn\.cfd/[A-Za-z0-9:]+",
+            r"https://instant\.busycdn\.[a-z]+/[A-Za-z0-9:?=&._\-]+",
         )
     except Exception:
         return None
@@ -553,39 +554,79 @@ def gdflix_get_google(instant):
 
 
 def gdflix_bypass_single(url):
-    html, final = gdflix_fetch_html(url)
+    """
+    GDFlix single-file bypass.
 
+    User-defined button priority on the new GDFlix UI:
+        1. DIRECT SERVER [MGT]   -> https://*.indexserver.<tld>/.../<file>
+        2. GoFile [Generate]     -> /realtime/multiup.php?upload=<hash>
+        3. Instant DL [10GBPS]   -> https://instant.busycdn.<tld>/...
+                                    (followed + fastcdn-unwrapped to Google)
+        4. FAST CLOUD / ZIPDISK  -> /zfile/<ts>/<id>
+    Extra fallbacks (legacy / older layouts): pixeldrain, gofile.io/d/,
+    pub.*, workers.dev, test.*, t.me.
+    """
+    html, final = gdflix_fetch_html(url)
+    page_base = get_base(final or url)
+
+    # ---------- 1. DIRECT SERVER [MGT] ----------
+    direct_server = gdflix_scan(
+        html,
+        r"https://[A-Za-z0-9\-]+\.indexserver\.[a-z]+/[^\s\"'<>]+",
+    )
+
+    # ---------- 2. GoFile [Generate] (multiup) ----------
+    gofile_btn = None
+    m = re.search(r'href="(/realtime/multiup\.php\?upload=[^"\s]+)"', html or "")
+    if m:
+        gofile_btn = urljoin(page_base, m.group(1))
+
+    # ---------- 3. Instant DL -> Google direct ----------
     instant = gdflix_get_instant(url)
     google = unwrap_fastcdn(gdflix_get_google(instant))
 
+    # ---------- 4. FAST CLOUD / ZIPDISK ----------
+    fast_cloud = None
+    m = re.search(r'href="(/zfile/[^"\s]+)"', html or "")
+    if m:
+        fast_cloud = urljoin(page_base, m.group(1))
+
+    # ---------- Legacy / fallback patterns ----------
     pix = gdflix_scan(html, r"https://pixeldrain\.dev/[^\"']+")
     if pix:
         pix = pix.replace("?embed", "")
 
     tg = gdflix_scan(html, r"https://t\.me/[A-Za-z0-9_/?=]+")
-    gofile_l = gdflix_scan(html, r"https://gofile\.io/d/[A-Za-z0-9]+")
+    gofile_io = gdflix_scan(html, r"https://gofile\.io/d/[A-Za-z0-9]+")
     pub = gdflix_scan(html, r"https://pub\.[^\"'\s]+")
     workers = gdflix_scan(html, r"https://[A-Za-z0-9\-]+\.workers\.dev/[^\"]+")
     test = gdflix_scan(html, r"https://test\.[^\"'\s]+")
 
     links = []
 
+    if direct_server:
+        links.append({"type": "direct_server", "url": direct_server})
+    if gofile_btn:
+        links.append({"type": "gofile_btn", "url": gofile_btn})
     if google:
         links.append({"type": "google", "url": google})
-    if gofile_l:
-        links.append({"type": "gofile", "url": gofile_l})
+    if fast_cloud:
+        links.append({"type": "fast_cloud", "url": fast_cloud})
+
+    if gofile_io:
+        links.append({"type": "gofile_io", "url": gofile_io})
     if pub:
-        pub = unwrap_fastcdn(pub)
-        if pub:
-            links.append({"type": "pub", "url": pub})
+        pub_u = unwrap_fastcdn(pub)
+        if pub_u:
+            links.append({"type": "pub", "url": pub_u})
     if workers:
-        workers = unwrap_fastcdn(workers)
-        if workers:
-            links.append({"type": "workers", "url": workers})
+        workers_u = unwrap_fastcdn(workers)
+        if workers_u:
+            links.append({"type": "workers", "url": workers_u})
     if test:
-        test = unwrap_fastcdn(test)
-        if test:
-            links.append({"type": "test", "url": test})
+        test_u = unwrap_fastcdn(test)
+        if test_u:
+            links.append({"type": "test", "url": test_u})
     if pix:
         links.append({"type": "pixeldrain", "url": pix})
     if tg:
@@ -594,11 +635,26 @@ def gdflix_bypass_single(url):
     if not links:
         raise DirectDownloadLinkException("GDFlix: No usable links")
 
+    # User priority: 1.direct_server, 2.gofile_btn, 3.google (instant),
+    # 4.fast_cloud, then legacy fallbacks.
     priority = {
-        "google": 0, "gofile": 1, "pub": 2, "workers": 3,
-        "test": 4, "pixeldrain": 5, "telegram": 6,
+        "direct_server": 0,
+        "gofile_btn": 1,
+        "google": 2,
+        "fast_cloud": 3,
+        "gofile_io": 4,
+        "pub": 5,
+        "workers": 6,
+        "test": 7,
+        "pixeldrain": 8,
+        "telegram": 9,
     }
     links.sort(key=lambda x: priority.get(x["type"], 99))
+
+    LOGGER.info(
+        "GDFlix mirrors found (priority order): %s",
+        [l["type"] for l in links],
+    )
     return links[0]["url"]
 
 
