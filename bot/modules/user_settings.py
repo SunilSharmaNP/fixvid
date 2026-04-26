@@ -92,19 +92,21 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             daily_left = (f'├ 📊 <b>Daily Used :</b> <i>{get_readable_file_size(user_data[user_id]["daily_limit"])} / {config_dict["DAILY_LIMIT_SIZE"]}GB</i>\n'
                           f'├ ⏰ <b>Reset In :</b> <i>{get_readable_time(user_data[user_id]["reset_limit"] - time())}</i>\n')
 
-        buttons.button_data('⚙️ General',       f'userset {user_id} general',  'header')
-        buttons.button_data('📥 Leech',          f'userset {user_id} leech',    'header')
-        buttons.button_data('☁️ Mirror/Clone',   f'userset {user_id} mirror')
-        buttons.button_data('🎬 FF / Metadata',  f'userset {user_id} ffset')
-        buttons.button_data('🎞️ Video Tools',    f'userset {user_id} vidtools')
-        buttons.button_data('🔧 Advanced',       f'userset {user_id} advanced')
-        buttons.button_data('🗑️ Reset All', f'userset {user_id} reset_all_confirm', 'footer')
-        buttons.button_data('✘ Close',      f'userset {user_id} close',             'footer')
+        buttons.button_data('Universal Settings', f'userset {user_id} general')
+        buttons.button_data('Mirror Settings',    f'userset {user_id} mirror')
+        buttons.button_data('Leech Settings',     f'userset {user_id} leech')
+        buttons.button_data('Video Tools',        f'userset {user_id} vidtools')
+        buttons.button_data('FF / Metadata',      f'userset {user_id} ffset')
+        buttons.button_data('Advanced',           f'userset {user_id} advanced')
+        buttons.button_data('Reset Setting', f'userset {user_id} reset_all_confirm', 'footer')
+        buttons.button_data('Close',         f'userset {user_id} close',             'footer')
 
-        text = (f'<blockquote>⊟ <b>Universal Settings :</b> {from_user.mention}\n'
+        text = (f'<blockquote>⊟ <b>User Settings :</b> {from_user.mention}\n'
                 f'├\n'
                 f'{premium_status}'
                 f'{daily_left}'
+                f'├ 🆔 <b>ID :</b> <code>{user_id}</code>\n'
+                f'├ 🌐 <b>Telegram DC :</b> <i>{getattr(from_user, "dc_id", "—")}</i>\n'
                 f'├ 🎞️ <b>Leech Type :</b> <i>{ltype}</i>\n'
                 f'├ 🖼️ <b>Thumbnail :</b> <i>{"Exists" if has_thumb else "Not Exists"}</i>\n'
                 f'├ ☁️ <b>RClone Config :</b> <i>{"Exists" if has_rcc else "Not Exists"}</i>\n'
@@ -112,16 +114,17 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                 f'├ ⚙️ <b>Upload Engine :</b> <i>{du}</i>\n'
                 f'└ 📂 <b>Select a category below</b></blockquote>')
 
-    # ═══════════════════════ GENERAL SETTINGS ═══════════════════════
+    # ═══════════════════════ UNIVERSAL SETTINGS ═══════════════════════
     elif data == 'general':
         sendpm  = user_dict.get('enable_pm', False)
         sendss  = user_dict.get('enable_ss', False)
         has_ses = bool(user_dict.get('session_string'))
+        mi_on   = user_dict.get('mediainfo', False)
+        save_md = user_dict.get('save_mode', 'botpm')
         default_upload = user_dict.get('default_upload', '') or config_dict['DEFAULT_UPLOAD']
         du_label = 'GDRIVE' if default_upload != 'gd' else 'RCLONE'
 
         YOPT = config_dict['YT_DLP_OPTIONS']
-        ytset = bool(user_dict.get('yt_opt') or ('yt_opt' not in user_dict and YOPT))
         if user_dict.get('yt_opt'):
             yto_val = f'<code>{escape(user_dict["yt_opt"])}</code>'
         elif 'yt_opt' not in user_dict and YOPT:
@@ -129,23 +132,29 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         else:
             yto_val = 'Not Exists'
 
-        buttons.button_data('YT-DLP Options',                f'userset {user_id} setdata yt_opt')
+        buttons.button_data('YT-Dlp Options',                          f'userset {user_id} setdata yt_opt')
         buttons.button_data(f'{"✅ " if has_ses else ""}User Session', f'userset {user_id} setdata session_string')
-        buttons.button_data(f'{"Disable" if sendpm else "Enable"} Bot PM',  f'userset {user_id} enable_pm')
-        buttons.button_data(f'{"Disable" if sendss else "Enable"} Screenshot', f'userset {user_id} enable_ss')
-        buttons.button_data(f'Engine: {du_label}',           f'userset {user_id} {default_upload}', 'header')
-        buttons.button_data('« Back',  f'userset {user_id} back', 'footer')
+        buttons.button_data(f'{"Disable" if sendpm else "Enable"} Bot PM',     f'userset {user_id} enable_pm')
+        buttons.button_data(f'{"Disable" if mi_on else "Enable"} MediaInfo',   f'userset {user_id} mediainfo')
+        buttons.button_data(f'Save As {"BotPm" if save_md == "dump" else "Dump"}', f'userset {user_id} save_mode')
+        buttons.button_data(f'{"Disable" if sendss else "Enable"} Screenshot',     f'userset {user_id} enable_ss')
+        buttons.button_data(f'Engine : {du_label}',           f'userset {user_id} {default_upload}', 'header')
+        buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
-        pm_val  = 'Force Enabled' if sendpm else 'Force Disabled'
-        ss_val  = 'Enabled' if sendss else 'Disabled'
-        ses_val = 'Active' if has_ses else 'Not Exists'
-        du_full = 'GDrive API' if default_upload == 'gd' else 'RClone'
+        pm_val  = 'Force Enabled'  if sendpm  else 'Force Disabled'
+        ss_val  = 'Enabled'        if sendss  else 'Disabled'
+        mi_val  = 'Enabled'        if mi_on   else 'Disabled'
+        sm_val  = 'Save As Dump'   if save_md == 'dump' else 'Save As BotPm'
+        ses_val = 'Active'         if has_ses else 'Not Exists'
+        du_full = 'GDrive API'     if default_upload == 'gd' else 'RClone'
 
-        text = (f'<blockquote>⊟ <b>General Settings :</b> {from_user.mention}\n'
+        text = (f'<blockquote>⊟ <b>Universal Settings :</b> {from_user.mention}\n'
                 f'├\n'
                 f'├ <b>YT-DLP Options :</b> <i>{yto_val}</i>\n'
                 f'├ <b>User Session :</b> <i>{ses_val}</i>\n'
+                f'├ <b>MediaInfo Mode :</b> <i>{mi_val}</i>\n'
+                f'├ <b>Save Mode :</b> <i>{sm_val}</i>\n'
                 f'├ <b>User Bot PM :</b> <i>{pm_val}</i>\n'
                 f'├ <b>Screenshot Mode :</b> <i>{ss_val}</i>\n'
                 f'└ <b>Upload Engine :</b> <i>{du_full}</i></blockquote>')
@@ -181,10 +190,10 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         buttons.button_data(f'{"✅ " if prename else ""}Leech Prefix',    f'userset {user_id} setdata prename')
         buttons.button_data(f'{"✅ " if sufname else ""}Leech Suffix',    f'userset {user_id} setdata sufname')
         buttons.button_data(f'{"✅ " if remname else ""}Leech Remname',   f'userset {user_id} setdata remname')
-        buttons.button_data(f'{"✅ " if dch else ""}Leech Dump',         f'userset {user_id} setdata dump_ch')
+        buttons.button_data(f'{"✅ " if dch else ""}Leech Dump',          f'userset {user_id} setdata dump_ch')
+        buttons.button_data(f'{"✅ " if metadata else ""}Metadata',       f'userset {user_id} setdata metadata')
         buttons.button_data(f'{"✅ " if is_mg else ""}Media Group',       f'userset {user_id} media_group')
         buttons.button_data('🗜️ Zip Mode',                                f'userset {user_id} zipmode')
-        buttons.button_data(f'{"✅ " if metadata else ""}Metadata',       f'userset {user_id} setdata metadata', 'footer')
         buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
@@ -218,19 +227,23 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                     ('stop_duplicate' not in user_dict and config_dict['STOP_DUPLICATE']))
 
         daily_mirror = _daily_str(user_id, user_dict)
-
-        buttons.button_data('☁️ RClone',    f'userset {user_id} rctool')
-        buttons.button_data('🔑 GDrive',    f'userset {user_id} gdtool')
-        buttons.button_data(f'{"✅ " if rc_path else ""}Mirror Prefix',   f'userset {user_id} setdata prename')
-        buttons.button_data(f'{"✅ " if (user_dict.get("sufname")) else ""}Mirror Suffix', f'userset {user_id} setdata sufname')
-        buttons.button_data(f'{"✅ " if (user_dict.get("remname")) else ""}Mirror Remname', f'userset {user_id} setdata remname')
-        buttons.button_data(f'{"✅ " if stop_dup else ""}Stop Duplicate',  f'userset {user_id} stop_duplicate {stop_dup}')
-        buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
-        buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
+        ddl_servers  = user_dict.get('ddl_servers') or {}
+        user_tds     = user_dict.get('user_tds') or {}
+        td_mode      = user_dict.get('user_td_mode', False)
 
         prename = user_dict.get('prename')
         sufname = user_dict.get('sufname')
         remname = user_dict.get('remname')
+
+        buttons.button_data('RClone',                                                      f'userset {user_id} rctool')
+        buttons.button_data(f'{"✅ " if prename else ""}Mirror Prefix',                    f'userset {user_id} setdata prename')
+        buttons.button_data(f'{"✅ " if sufname else ""}Mirror Suffix',                    f'userset {user_id} setdata sufname')
+        buttons.button_data(f'{"✅ " if remname else ""}Mirror Remname',                   f'userset {user_id} setdata remname')
+        buttons.button_data(f'DDL Servers ({len(ddl_servers)})',                           f'userset {user_id} ddls_info')
+        buttons.button_data(f'User TDs ({len(user_tds)})',                                 f'userset {user_id} gdtool')
+        buttons.button_data(f'{"✅ " if stop_dup else ""}Stop Duplicate',                  f'userset {user_id} stop_duplicate {stop_dup}', 'header')
+        buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
         text = (f'<blockquote>⊟ <b>Mirror/Clone Settings :</b> {from_user.mention}\n'
                 f'├\n'
@@ -239,6 +252,10 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                 f'├ <b>Mirror Prefix :</b> <i>{"<code>" + escape(prename) + "</code>" if prename else "Not Exists"}</i>\n'
                 f'├ <b>Mirror Suffix :</b> <i>{"<code>" + escape(sufname) + "</code>" if sufname else "Not Exists"}</i>\n'
                 f'├ <b>Mirror Remname :</b> <i>{"<code>" + escape(remname) + "</code>" if remname else "Not Exists"}</i>\n'
+                f'├ <b>DDL Server(s) :</b> <i>{len(ddl_servers)}</i>\n'
+                f'├ <b>User TD Mode :</b> <i>{"Force Enabled" if td_mode else "Force Disabled"}</i>\n'
+                f'├ <b>Total User TD(s) :</b> <i>{len(user_tds)}</i>\n'
+                f'├ <b>Daily Mirror :</b> <i>{daily_mirror}</i>\n'
                 f'├ <b>GDrive Token :</b> <i>{"Exists" if has_gdx else "Not Exists"}</i>\n'
                 f'├ <b>GDrive ID :</b> <i>{"<code>" + gd_id + "</code>" if gd_id else "Not Exists"}</i>\n'
                 f'├ <b>Index Link :</b> <i>{"<code>" + index + "</code>" if index else "Not Exists"}</i>\n'
@@ -277,21 +294,25 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         vid_fontsize = user_dict.get('vid_hardsub_size') or config_dict.get('HARDSUB_FONT_SIZE', '')
         disabled_vids = set(user_dict.get('disabled_vidtools', []))
 
-        # All VID_MODE as toggle buttons
+        # All VID_MODE as toggle buttons (✅ enabled / ❌ disabled)
         for key, label in VID_MODE.items():
             icon    = _VID_ICONS.get(key, '🎬')
             enabled = key not in disabled_vids
-            mark    = '✅ ' if enabled else '❌ '
-            buttons.button_data(f'{mark}{icon} {label}', f'userset {user_id} toggle_vid {key}')
+            mark    = '✅' if enabled else '❌'
+            buttons.button_data(f'{mark} {icon} {label}', f'userset {user_id} toggle_vid {key}')
 
-        # Sub-menu buttons
+        # Bulk toggle helpers
+        buttons.button_data('✅ Enable All',  f'userset {user_id} vid_all on',  'header')
+        buttons.button_data('❌ Disable All', f'userset {user_id} vid_all off', 'header')
+
+        # Sub-menus
         buttons.button_data('⚙️ Compress Settings', f'userset {user_id} vid_compress', 'footer')
         buttons.button_data('📝 HardSub Settings',  f'userset {user_id} vid_hardsub',  'footer')
         buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
-        enabled_list  = ', '.join(VID_MODE[k] for k in VID_MODE if k not in disabled_vids) or 'None'
-        disabled_list = ', '.join(VID_MODE[k] for k in disabled_vids if k in VID_MODE) or 'None'
+        enabled_count  = len(VID_MODE) - len(disabled_vids)
+        disabled_list  = ', '.join(VID_MODE[k] for k in disabled_vids if k in VID_MODE) or 'None'
 
         image = config_dict['IMAGE_VIDTOOLS']
         text  = (f'<blockquote>⊟ <b>Video Tools Settings :</b> {from_user.mention}\n'
@@ -301,9 +322,9 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                  f'├ <b>Compress Banner :</b> <i>{vid_banner or "Default"}</i>\n'
                  f'├ <b>HardSub Font :</b> <i>{vid_font or "Default"}</i>\n'
                  f'├ <b>HardSub Size :</b> <i>{vid_fontsize or "Default"}</i>\n'
-                 f'├ <b>Enabled Tools :</b> <i>{enabled_list}</i>\n'
-                 f'└ <b>Disabled Tools :</b> <i>{disabled_list}</i></blockquote>\n\n'
-                 '<i>Tap a tool button to toggle it on/off</i>')
+                 f'├ <b>Tools Enabled :</b> <i>{enabled_count} / {len(VID_MODE)}</i>\n'
+                 f'└ <b>Disabled :</b> <i>{disabled_list}</i></blockquote>\n\n'
+                 '<i>Tap a tool to toggle it. Open Compress / HardSub for advanced options.</i>')
 
     # ═══════════════════════ VIDEO TOOLS → COMPRESS ═══════════════════════
     elif data == 'vid_compress':
@@ -398,7 +419,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             [buttons.button_data(f'{cap_icons.get(m, "🔤")} {m.title()}', f'userset {user_id} cap{m}')
              for m in cap_modes]
         buttons.button_data(f'{"✅ " if caption else ""}Custom Caption', f'userset {user_id} setdata setcap')
-        buttons.button_data('« Back', f'userset {user_id} back leech')
+        buttons.button_data('« Back',  f'userset {user_id} back leech', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',      'footer')
         if caption:
             buttons.button_data(f'{"✅ " if fnamecap else ""}FName Caption', f'userset {user_id} fnamecap')
             custom_cap = f'\n<code>{escape(caption)}</code>'
@@ -422,7 +444,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         rc_path = user_dict.get('rclone_path')
         buttons.button_data(f'{"✅ " if has_rcc else ""}RClone Config', f'userset {user_id} setdata rclone_config')
         buttons.button_data(f'{"✅ " if rc_path else ""}RClone Path',   f'userset {user_id} setdata rclone_path')
-        buttons.button_data('« Back', f'userset {user_id} back mirror')
+        buttons.button_data('« Back',  f'userset {user_id} back mirror', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',       'footer')
 
         image = config_dict['IMAGE_RCLONE']
         text  = (f'<blockquote>⊟ <b>RClone Settings :</b> {from_user.mention}\n'
@@ -447,7 +470,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             use_sa_val = 'Enabled' if use_sa_v else 'Disabled'
         else:
             use_sa_val = 'Not Available'
-        buttons.button_data('« Back', f'userset {user_id} back mirror')
+        buttons.button_data('« Back',  f'userset {user_id} back mirror', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',       'footer')
 
         image = config_dict['IMAGE_GD']
         text  = (f'<blockquote>⊟ <b>GDrive Settings :</b> {from_user.mention}\n'
@@ -470,7 +494,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         def_data = but_dict[uset_data][0]
         but_dict[uset_data][0] = f'🔥 {def_data}'
         [buttons.button_data(key, value) for key, value in but_dict.values()]
-        buttons.button_data('« Back', f'userset {user_id} back leech')
+        buttons.button_data('« Back',  f'userset {user_id} back leech', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',      'footer')
         part_size = get_readable_file_size(config_dict['LEECH_SPLIT_SIZE'])
         image = config_dict['IMAGE_ZIP']
         text  = (f'<blockquote>⊟ <b>Zip Mode :</b> {from_user.mention}\n'
@@ -536,7 +561,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             else:
                 buttons.button_data(f'Set {butkey}', f'userset {user_id} prepare {key}')
         if qdata:
-            buttons.button_data('« Back', f'userset {user_id} {qdata}')
+            buttons.button_data('« Back', f'userset {user_id} {qdata}', 'footer')
         text = text.replace('Timeout: 60s.', '')
         _setdata_back = {
             'thumb': 'leech', 'dump_ch': 'leech', 'prename': 'leech', 'sufname': 'leech',
@@ -550,7 +575,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         if uset_data not in _no_back and not qdata:
             _bk = _setdata_back.get(uset_data, '')
             _cb = f'userset {user_id} back {_bk}' if _bk else f'userset {user_id} back'
-            buttons.button_data('« Back', _cb)
+            buttons.button_data('« Back', _cb, 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
 
     # ═══════════════════════ PREPARE INPUT ═══════════════════════
     elif data == 'prepare':
@@ -584,10 +610,12 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             'vid_hardsub_size':    ('Send HardSub font size as a number.\n<i>Example:</i> <code>24</code>',             config_dict['IMAGE_VIDTOOLS']),
         }
         text, image = prepare_dict[uset_data]
-        buttons.button_data('« Back', f'userset {user_id} setdata {uset_data}')
+        buttons.button_data('« Back',  f'userset {user_id} setdata {uset_data}', 'footer')
+        buttons.button_data('✘ Close', f'userset {user_id} close',               'footer')
 
-    buttons.button_data('✘ Close', f'userset {user_id} close')
-    return text, image, buttons.build_menu(2)
+    cols = 1 if not data else 2
+    fcols = 1 if not data else 8
+    return text, image, buttons.build_menu(cols, f_cols=fcols)
 
 
 async def update_user_settings(query: CallbackQuery, data: str = None, uset_data: str = None):
@@ -789,18 +817,41 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
 
         # ── Toggle buttons ──
         case ('enable_pm' | 'enable_ss' | 'as_doc' | 'media_group' |
-              'fnamecap' | 'stop_duplicate' | 'use_sa') as value:
+              'fnamecap' | 'stop_duplicate' | 'use_sa' | 'mediainfo') as value:
             qdata = uset_data = ''
             await update_user_ldata(user_id, value, not user_dict.get(value, False))
             if value == 'fnamecap':
                 qdata = 'capmode'
             elif value in ('stop_duplicate', 'use_sa'):
                 qdata = 'gdtool'
-            elif value in ('enable_pm', 'enable_ss'):
+            elif value in ('enable_pm', 'enable_ss', 'mediainfo'):
                 qdata = 'general'
             elif value in ('as_doc', 'media_group'):
                 qdata = 'leech'
             await gather(query.answer(), update_user_settings(query, qdata, uset_data))
+
+        # ── Save Mode toggle (BotPm <-> Dump) ──
+        case 'save_mode':
+            cur = user_dict.get('save_mode', 'botpm')
+            new = 'dump' if cur == 'botpm' else 'botpm'
+            await update_user_ldata(user_id, 'save_mode', new)
+            await gather(query.answer(f'Save Mode → {"Save As Dump" if new == "dump" else "Save As BotPm"}', True),
+                         update_user_settings(query, 'general'))
+
+        # ── DDL Servers info popup ──
+        case 'ddls_info':
+            await query.answer('Use /ddl command to add or manage your DDL servers.', True)
+
+        # ── Bulk enable/disable all video tools ──
+        case 'vid_all':
+            mode = data[3] if len(data) >= 4 else 'on'
+            if mode == 'off':
+                await update_user_ldata(user_id, 'disabled_vidtools', list(VID_MODE.keys()))
+                msg = 'All video tools disabled ❌'
+            else:
+                await update_user_ldata(user_id, 'disabled_vidtools', [])
+                msg = 'All video tools enabled ✅'
+            await gather(query.answer(msg, True), update_user_settings(query, 'vidtools'))
 
         # ── Zip mode ──
         case 'zipmode':
