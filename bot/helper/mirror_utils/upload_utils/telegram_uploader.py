@@ -55,6 +55,29 @@ class TgUploader:
         self._last_uploaded = current
         self._processed_bytes += chunk_size
 
+    @staticmethod
+    def _pyro_entities_to_bot_api(entities):
+        """Convert Pyrogram MessageEntity list to Bot API JSON-compatible list."""
+        if not entities:
+            return []
+        out = []
+        for ent in entities:
+            try:
+                e_type = str(ent.type).rsplit('.', 1)[-1].lower()
+                d = {'type': e_type, 'offset': ent.offset, 'length': ent.length}
+                if getattr(ent, 'url', None):
+                    d['url'] = ent.url
+                if getattr(ent, 'user', None) and getattr(ent.user, 'id', None):
+                    d['user'] = {'id': ent.user.id}
+                if getattr(ent, 'language', None):
+                    d['language'] = ent.language
+                if getattr(ent, 'custom_emoji_id', None):
+                    d['custom_emoji_id'] = str(ent.custom_emoji_id)
+                out.append(d)
+            except Exception:
+                continue
+        return out
+
     async def _set_video_cover(self, video_msg, cover_path, caption=None):
         """Set HD video cover via Telegram Bot API editMessageMedia.
 
@@ -87,9 +110,15 @@ class TgUploader:
                 'supports_streaming': True,
                 'cover': 'attach://cover',
             }
-            if caption:
-                media_json['caption'] = caption
-                media_json['parse_mode'] = 'HTML'
+            # Preserve original caption + formatting using already-parsed entities
+            # from the message (avoids HTML parse errors on user-defined templates)
+            existing_caption = getattr(video_msg, 'caption', None)
+            existing_entities = getattr(video_msg, 'caption_entities', None)
+            if existing_caption:
+                media_json['caption'] = str(existing_caption)
+                bot_entities = self._pyro_entities_to_bot_api(existing_entities)
+                if bot_entities:
+                    media_json['caption_entities'] = bot_entities
             form.add_field('media', json_dumps(media_json))
 
             async with aio_open(cover_path, 'rb') as f:
