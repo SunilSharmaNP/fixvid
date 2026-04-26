@@ -222,7 +222,7 @@ class TgUploader:
                                                       reply_to_message_id=self._send_msg.id)
             if self._is_cancelled:
                 return
-            await self._final_message(ss_image, bool(is_video or is_audio))
+            await self._final_message(ss_image, bool((is_video or is_audio) and self._listener.user_dict.get('mediainfo', False)))
             
             await self._copy_Leech(self._listener.user_id, self._send_msg)
             if self._listener.upDest:
