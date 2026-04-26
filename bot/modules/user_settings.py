@@ -96,8 +96,6 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         buttons.button_data('Mirror Settings',    f'userset {user_id} mirror')
         buttons.button_data('Leech Settings',     f'userset {user_id} leech')
         buttons.button_data('Video Tools',        f'userset {user_id} vidtools')
-        buttons.button_data('FF / Metadata',      f'userset {user_id} ffset')
-        buttons.button_data('Advanced',           f'userset {user_id} advanced')
         buttons.button_data('Reset Setting', f'userset {user_id} reset_all_confirm', 'footer')
         buttons.button_data('Close',         f'userset {user_id} close',             'footer')
 
@@ -132,12 +130,21 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         else:
             yto_val = 'Not Exists'
 
+        if ext_filters := user_dict.get('excluded_extensions'):
+            ex_ex = ', '.join(ext_filters)
+        elif 'excluded_extensions' not in user_dict and GLOBAL_EXTENSION_FILTER:
+            ex_ex = ', '.join(GLOBAL_EXTENSION_FILTER)
+        else:
+            ex_ex = 'Not Exists'
+        has_ext = bool(user_dict.get('excluded_extensions'))
+
         buttons.button_data('YT-Dlp Options',                          f'userset {user_id} setdata yt_opt')
         buttons.button_data(f'{"✅ " if has_ses else ""}User Session', f'userset {user_id} setdata session_string')
         buttons.button_data(f'{"Disable" if sendpm else "Enable"} Bot PM',     f'userset {user_id} enable_pm')
         buttons.button_data(f'{"Disable" if mi_on else "Enable"} MediaInfo',   f'userset {user_id} mediainfo')
         buttons.button_data(f'Save As {"BotPm" if save_md == "dump" else "Dump"}', f'userset {user_id} save_mode')
         buttons.button_data(f'{"Disable" if sendss else "Enable"} Screenshot',     f'userset {user_id} enable_ss')
+        buttons.button_data(f'{"✅ " if has_ext else ""}Extensions Filter',   f'userset {user_id} setdata excluded_extensions')
         buttons.button_data(f'Engine : {du_label}',           f'userset {user_id} {default_upload}', 'header')
         buttons.button_data('« Back',  f'userset {user_id} back',  'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close', 'footer')
@@ -157,6 +164,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
                 f'├ <b>Save Mode :</b> <i>{sm_val}</i>\n'
                 f'├ <b>User Bot PM :</b> <i>{pm_val}</i>\n'
                 f'├ <b>Screenshot Mode :</b> <i>{ss_val}</i>\n'
+                f'├ <b>Excluded Extensions :</b> <i>{ex_ex}</i>\n'
                 f'└ <b>Upload Engine :</b> <i>{du_full}</i></blockquote>')
 
     # ═══════════════════════ LEECH SETTINGS ═══════════════════════
@@ -566,7 +574,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         _setdata_back = {
             'thumb': 'leech', 'dump_ch': 'leech', 'prename': 'leech', 'sufname': 'leech',
             'remname': 'leech', 'split_size_info': 'leech',
-            'excluded_extensions': 'advanced',
+            'excluded_extensions': 'general',
             'session_string': 'general', 'yt_opt': 'general',
             'metadata': 'ffset',
         }
@@ -613,9 +621,7 @@ async def get_user_settings(from_user, data: str, uset_data: str):
         buttons.button_data('« Back',  f'userset {user_id} setdata {uset_data}', 'footer')
         buttons.button_data('✘ Close', f'userset {user_id} close',               'footer')
 
-    cols = 1 if not data else 2
-    fcols = 1 if not data else 8
-    return text, image, buttons.build_menu(cols, f_cols=fcols)
+    return text, image, buttons.build_menu(2)
 
 
 async def update_user_settings(query: CallbackQuery, data: str = None, uset_data: str = None):
