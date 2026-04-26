@@ -124,6 +124,74 @@ debrid_link_supported_sites = [
 
 
 # ------------------------------------------------------------
+# Supported sites registry (used by bot.modules.bypass)
+# ------------------------------------------------------------
+from types import SimpleNamespace
+
+sites = SimpleNamespace(
+    all=sorted(set([
+        "1fichier.com",
+        "akmfiles",
+        "berkasdrive.com",
+        "buzzheavier.com",
+        "debrid-link",
+        "devuploads",
+        "doodstream",
+        "easyupload.io",
+        "filelions",
+        "filepress",
+        "fuckingfast.co",
+        "gdflix",
+        "gdtot",
+        "github.com",
+        "gofile.io",
+        "hubcloud",
+        "hxfile.co",
+        "instagram.com",
+        "krakenfiles.com",
+        "linkbox",
+        "lulacloud.com",
+        "mediafire.com",
+        "mp4upload.com",
+        "onedrive (1drv.ms)",
+        "osdn.net",
+        "pcloud",
+        "pixeldrain.com",
+        "qiwi.gg",
+        "racaty",
+        "send.cm",
+        "sharer-scraper",
+        "shrdsk.me",
+        "solidfiles.com",
+        "streamhub",
+        "streamtape",
+        "streamvid.net",
+        "streamwish",
+        "swisstransfer.com",
+        "terabox",
+        "tmpsend.com",
+        "upload.ee",
+        "wetransfer",
+        "yandex.disk",
+    ])),
+    FEMBED=[
+        "fembed",
+        "femax20",
+        "fcdn.stream",
+        "feurl",
+        "fplayer",
+        "naniplay",
+        "embedsito",
+        "dbgo",
+        "vanfem",
+        "vcdnplay",
+        "vidohd",
+        "vidsrc",
+    ],
+)
+
+
+# ------------------------------------------------------------
 # Main dispatcher
 # ------------------------------------------------------------
 def direct_link_generator(link):
