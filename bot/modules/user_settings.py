@@ -740,6 +740,8 @@ async def get_user_settings(from_user, data: str, uset_data: str):
             }
             file_path, butkey, text, image, qdata = file_dict[uset_data]
             if await aiopath.exists(file_path):
+                if uset_data == 'thumb':
+                    buttons.button_data(f'View {butkey}', f'userset {user_id} view_thumb', 'header')
                 buttons.button_data(f'Change {butkey}', f'userset {user_id} prepare {uset_data}')
                 buttons.button_data(f'Delete {butkey}', f'userset {user_id} rem_{uset_data}')
             else:
@@ -949,6 +951,17 @@ async def edit_user_settings(client: Client, query: CallbackQuery):
               'vid_compress' | 'vid_hardsub' | 'advanced' |
               'capmode' | 'gdtool' | 'rctool') as value:
             await gather(query.answer(), update_user_settings(query, value))
+
+        # ── View current thumbnail (sends a fresh photo, keeps menu) ──
+        case 'view_thumb':
+            tpath = ospath.join('thumbnails', f'{user_id}.jpg')
+            if not await aiopath.exists(tpath):
+                await query.answer('No thumbnail set!', True)
+                return
+            await query.answer()
+            vmsg = await sendPhoto(f'🖼️ <b>Your current thumbnail</b>\n└ <code>{tpath}</code>',
+                                   query.message, tpath)
+            await auto_delete_message(query.message, vmsg, stime=15)
 
         # ── Video Tools: open per-tool sub-menu ──
         case 'vid_setting':
@@ -1248,11 +1261,11 @@ async def set_thumb_from_reply(message: Message):
         if DATABASE_URL:
             await DbManager().update_user_doc(user_id, 'thumb', des_dir)
         await deleteMessage(message, pmsg)
-        ok = await sendPhoto(f'✅ <b>Thumbnail set successfully!</b>\n\n'
-                             f'├ <b>User :</b> {from_user.mention}\n'
-                             f'└ <b>Path :</b> <code>{des_dir}</code>',
-                             message, des_dir)
-        await auto_delete_message(message, ok, stime=15)
+        # Open the thumbnail settings menu (same view as setdata thumb)
+        text, image, btns = await get_user_settings(from_user, 'setdata', 'thumb')
+        if not image:
+            image = des_dir if await aiopath.exists(des_dir) else config_dict['IMAGE_USETIINGS']
+        await sendPhoto(text, message, image, btns)
     except Exception as e:
         await deleteMessage(message, pmsg)
         emsg = await sendMessage(f'❌ Failed to set thumbnail: <code>{escape(str(e))}</code>', message)
