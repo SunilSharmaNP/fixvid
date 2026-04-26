@@ -10,9 +10,15 @@ from re import findall as re_findall, match as re_match, search as re_search, DO
 from requests import Session, session as req_session, post as rpost
 from requests.adapters import HTTPAdapter
 from time import sleep
-from urllib.parse import parse_qs, urlparse, unquote, urljoin
+from urllib.parse import parse_qs, urlparse, unquote, urljoin, quote
 from urllib3.util.retry import Retry
 from uuid import uuid4
+
+try:
+    from bs4 import BeautifulSoup
+except Exception:
+    BeautifulSoup = None
+from requests import get as rget
 
 from bot import config_dict, LOGGER
 from bot.helper.ext_utils.bot_utils import getSizeBytes
@@ -23,33 +29,6 @@ from bot.helper.ext_utils.status_utils import get_readable_time, speed_string_to
 
 
 _caches = {}
-
-user_agent = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-)
-
-# -------- HUB FAMILY (HubCloud type sites) --------
-hub_list = [
-    "hubcloud",
-]
-
-
-gdflix_list = [
-    "gdflix",
-    "gd-flix",
-    "gdfliix",
-    "gdflix.dev",
-    "gdflix.top",
-    "gdflix.xyz",
-]
-
-# -------- HUBDRIVE ONLY --------
-hubdrive_list = [
-    "hubdrive",
-    "hubdrive.xyz",
-    "hubdrive.in",
-    "hubdrive.one",
-]
 
 
 class siteList:
@@ -62,7 +41,9 @@ class siteList:
     LIION_WISH = ['vidhide.com', 'vidhidepro.com', 'filelions.site', 'filelions.live', 'filelions.to', 'filelions.online', 'cabecabean.lol', 'embedwish.com',
                   'streamwish.com', 'kitabmarkaz.xyz', 'wishfast.top', 'streamwish.to']
     TERA = ['terabox.com', 'nephobox.com', '4funbox.com', 'mirrobox.com', 'momerybox.com', 'teraboxapp.com', '1024tera.com', 'terabox.app', 'gibibox.com']
-    GSHARER = ['appdrive', 'gdtot', 'gdflix', 'sharer']
+    GSHARER = ['appdrive', 'gdtot', 'sharer']
+    HUB     = ['hubcloud']
+    GDFLIX  = ['gdflix', 'gd-flix', 'gdfliix', 'gdflix.dev', 'gdflix.top', 'gdflix.xyz', 'gdflix.tax', 'gdflix.cfd', 'gdflix.dad']
     FEMBED = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.com', 'layarkacaxxi.icu', 'naniplay.nanime.in', 'naniplay.nanime.biz', 'naniplay.com',
               'mm9842.com' 'javcl.me', 'asianclub.tv', 'javhdfree.icu', 'sexhd.co', 'vanfem.com']
     STAPE = ['streamtape.com', 'streamtape.co', 'streamtape.cc', 'streamtape.to', 'streamtape.net', 'streamta.pe', 'streamtape.xyz']
@@ -73,7 +54,7 @@ class siteList:
 
     @property
     def all(self):
-        return natsorted(self.DOOD + self.HOSTER + self.LIION_WISH + self.TERA + self.GSHARER + self.FEMBED + self.STAPE)
+        return natsorted(self.DOOD + self.HOSTER + self.LIION_WISH + self.TERA + self.GSHARER + self.HUB + self.GDFLIX + self.FEMBED + self.STAPE)
 
 
 sites = siteList()
@@ -148,6 +129,11 @@ def direct_link_generator(link: str):
         return userscloud(link)
     if any(x in domain for x in ['wetransfer.com', 'we.tl']):
         return wetransfer(link)
+    # HubCloud / GDFlix family (Hindi/Hinglish bot direct-leech)
+    if any(x in domain for x in sites.GDFLIX):
+        return gdflix(link)
+    if any(x in domain for x in sites.HUB):
+        return hubcloud(link)
     # Video Hoster
     if any(x in domain for x in sites.FEMBED):
         return fembed(link)
@@ -155,35 +141,6 @@ def direct_link_generator(link: str):
         return mp4upload(link)
     if any(x in domain for x in sites.STAPE):
         return streamtape(link)
-
-       # -------- GDFlix FIRST --------
-    if any(x in domain for x in gdflix_list):
-        # PACK MODE
-        if "/pack" in link or "/packs/" in link:
-            return gdflix_bypass(link)
-    
-        # SINGLE MODE
-        return gdflix_bypass(link)
-
-
-    # -------- HUB FAMILY --------
-    if any(x in domain for x in hub_list):
-        if "/packs/" in link:
-            links = hubcloud_extract_pack(link)
-            if not links:
-                raise DirectDownloadLinkException("HubCloud pack empty")
-    
-            for l in links:
-                try:
-                    return hubcloud_bypass_single(l)
-                except Exception:
-                    continue
-    
-            raise DirectDownloadLinkException("HubCloud pack failed")
-    
-        return hubcloud_bypass_single(link)
-
-    
     # GDrive Sharer
     if is_sharer_link(link):
         if is_gdrive_link(link):
@@ -208,264 +165,6 @@ def cf_bypass(url):
     except Exception as e:
         e
     raise DirectDownloadLinkException('ERROR: Con\'t bypass cloudflare')
-
-"""__________________________________________________"""
-"""---- Hubcloud & Gdflix Bypasss -----"""
-
-def detect_hubcloud_base(url):
-    try:
-        h = urlparse(url).hostname or ""
-        if "hubcloud." in h:
-            return f"https://{h}"
-        return "https://hubcloud.one"
-    except:
-        return "https://hubcloud.one"
-
-
-def get_base(url):
-    u = urlparse(url)
-    return f"{u.scheme}://{u.hostname}"
-
-
-def fix_url(u):
-    return quote(u, safe=":/?#[]@!$&'()*+,;=%")
-
-def hubcloud_bypass_single(url):
-    base = detect_hubcloud_base(url)
-    new_url = url.replace(get_base(url), base)
-
-    r = get(new_url, headers={"User-Agent": user_agent}, timeout=15)
-    soup = BeautifulSoup(r.text, "html.parser")
-
-    link = ""
-    for s in soup.find_all("script"):
-        t = s.string or ""
-        m = re.search(r"var\s+url\s*=\s*'([^']+)'", t)
-        if m:
-            link = m.group(1)
-            break
-
-    if not link:
-        a = soup.select_one("div.vd center a")
-        if a:
-            link = a.get("href", "")
-
-    if not link:
-        raise DirectDownloadLinkException("HubCloud: Link not found")
-
-    if not link.startswith("http"):
-        link = base + link
-
-    r2 = get(link, headers={"User-Agent": user_agent}, timeout=15)
-    soup2 = BeautifulSoup(r2.text, "html.parser")
-
-    mirrors = []
-    for a in soup2.select("div.card-body h2 a.btn"):
-        href = fix_url(a.get("href", ""))
-        txt = a.get_text(strip=True).lower()
-
-        if "fslv2" in txt:
-            t = "fslv2"
-        elif "fsl" in txt:
-            t = "fsl"
-        elif "pixel" in href:
-            t = "pixel"
-        else:
-            t = "direct"
-
-        mirrors.append({"type": t, "url": href})
-
-    if not mirrors:
-        raise DirectDownloadLinkException("HubCloud: No mirrors found")
-
-    # 🔥 priority
-    priority = {"fsl": 0, "fslv2": 2, "direct": 3, "cloud": 4, "cdn": 5, "pixel": 6}
-    mirrors.sort(key=lambda x: priority.get(x["type"], 99))
-
-    return mirrors[0]["url"]
-
-def hubcloud_extract_pack(url):
-    r = get(url, headers={"User-Agent": user_agent}, timeout=15)
-    m = re.search(r"JSON\.parse\(`([\s\S]+?)`\)", r.text)
-
-    if not m:
-        return []
-
-    data = json.loads(m.group(1))
-    base = get_base(url)
-    return [f"{base}/drive/{f['share_id']}" for f in data.get("files", [])]
-
-def gdflix_fetch_html(url):
-    r = get(
-        url,
-        headers={"User-Agent": user_agent},
-        allow_redirects=True,
-        timeout=15
-    )
-    return r.text, r.url
-
-
-def gdflix_scan(text, pattern):
-    m = re.search(pattern, text, re.S)
-    return m.group(0) if m else None
-    
-def gdflix_extract_pack_links(html, base):
-    out = []
-    matches = re.findall(r'href="(/file/[A-Za-z0-9]+)"', html)
-    for m in matches:
-        full = urljoin(base, m)
-        if full not in out:
-            out.append(full)
-    return out
-
-def gdflix_get_instant(url):
-    try:
-        r = get(url, headers={"User-Agent": user_agent}, timeout=15)
-        return gdflix_scan(
-            r.text,
-            r"https://instant\.busycdn\.cfd/[A-Za-z0-9:]+"
-        )
-    except:
-        return None
-
-def unwrap_fastcdn(url):
-    if not url:
-        return None
-
-    if "fastcdn-dl.pages.dev" in url and "url=" in url:
-        try:
-            qs = parse_qs(urlparse(url).query)
-            pure = qs.get("url", [None])[0]
-            if pure:
-                pure = unquote(pure)
-                if "video-downloads.googleusercontent.com" in pure:
-                    return pure
-        except:
-            pass
-
-        # ❌ agar fastcdn hai but unwrap fail → DROP
-        return None
-
-    return url
-
-
-
-def gdflix_get_google(instant):
-    if not instant:
-        return None
-
-    try:
-        r = get(
-            instant,
-            headers={"User-Agent": user_agent},
-            allow_redirects=True,
-            timeout=15
-        )
-
-        final = r.url
-
-        # ✅ DIRECT GOOGLE LINK
-        if "video-downloads.googleusercontent.com" in final:
-            return final
-
-        # ✅ FASTCDN WRAPPER → UNWRAP (JS JAISE)
-        if "fastcdn-dl.pages.dev" in final and "url=" in final:
-            parsed = urlparse(final)
-            qs = parse_qs(parsed.query)
-
-            pure = qs.get("url", [None])[0]
-            if pure:
-                pure = unquote(pure)
-                if "video-downloads.googleusercontent.com" in pure:
-                    return pure
-
-    except Exception:
-        pass
-
-    return None
-
-
-def gdflix_bypass_single(url):
-    html, final = gdflix_fetch_html(url)
-
-    instant = gdflix_get_instant(url)
-    google = unwrap_fastcdn(gdflix_get_google(instant))
-
-    pix = gdflix_scan(html, r"https://pixeldrain\.dev/[^\"']+")
-    if pix:
-        pix = pix.replace("?embed", "")
-
-    tg = gdflix_scan(html, r"https://t\.me/[A-Za-z0-9_/?=]+")
-
-    gofile = gdflix_scan(html, r"https://gofile\.io/d/[A-Za-z0-9]+")
-    pub = gdflix_scan(html, r"https://pub\.[^\"'\s]+")
-    workers = gdflix_scan(html, r"https://[A-Za-z0-9\-]+\.workers\.dev/[^\"]+")
-    test = gdflix_scan(html, r"https://test\.[^\"'\s]+")
-
-    links = []
-
-    # ⭐ GOOGLE FIRST
-    if google:
-        links.append({"type": "google", "url": google})
-
-    if gofile:
-        links.append({"type": "gofile", "url": gofile})
-
-    if pub:
-        pub = unwrap_fastcdn(pub)
-        if pub:
-            links.append({"type": "pub", "url": pub})
-
-    if workers:
-        workers = unwrap_fastcdn(workers)
-        if workers:
-            links.append({"type": "workers", "url": workers})
-
-    if test:
-        test = unwrap_fastcdn(test)
-        if test:
-            links.append({"type": "test", "url": test})
-
-    if pix:
-        links.append({"type": "pixeldrain", "url": pix})
-
-    if tg:
-        links.append({"type": "telegram", "url": tg})
-
-    if not links:
-        raise DirectDownloadLinkException("GDFlix: No usable links")
-
-    priority = {
-        "google": 0,
-        "gofile": 1,
-        "pub": 2,
-        "workers": 3,
-        "test": 4,
-        "pixeldrain": 5,
-        "telegram": 6,
-    }
-
-    links.sort(key=lambda x: priority.get(x["type"], 99))
-    return links[0]["url"]
-
-
-def gdflix_bypass(url):
-    html, final = gdflix_fetch_html(url)
-    pack_links = gdflix_extract_pack_links(html, final)
-
-    if len(pack_links) > 1:
-        for l in pack_links:
-            try:
-                return gdflix_bypass_single(l)
-            except Exception:
-                continue
-        raise DirectDownloadLinkException("GDFlix pack failed")
-
-    return gdflix_bypass_single(url)
-
-
-"""__________________________________________________"""
-"""---- Hubcloud & Gdflix Bypasss -----"""
 
 
 def get_captcha_token(session, params):
@@ -1854,3 +1553,358 @@ def mediafireFolder(url: str):
         return (details['contents'][0]['url'], details['header'])
     return details
 # ==============================================================================================================
+
+
+# ==============================================================================================================
+# ────────────────────────────  HUBCLOUD  +  GDFLIX  DIRECT  LEECH  ────────────────────────────
+# Adapted for fixvid. Returns a single direct-download URL (string) which aria2 / requests can fetch.
+# All errors raise DirectDownloadLinkException so the caller's existing flow stays unchanged.
+# ==============================================================================================================
+
+_DL_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+          "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+_DL_HDRS = {"User-Agent": _DL_UA, "Accept-Language": "en-US,en;q=0.9"}
+
+
+def _dl_get(url, **kw):
+    kw.setdefault("headers", _DL_HDRS)
+    kw.setdefault("timeout", 20)
+    kw.setdefault("allow_redirects", True)
+    return rget(url, **kw)
+
+
+def _hc_base_for(url):
+    """Pick the HubCloud base host from the input link (preserves user's mirror)."""
+    try:
+        h = urlparse(url).hostname or ""
+        if h and "hubcloud." in h:
+            return f"https://{h}"
+    except Exception:
+        pass
+    return "https://hubcloud.one"
+
+
+def _origin_of(url):
+    u = urlparse(url)
+    return f"{u.scheme}://{u.hostname}"
+
+
+def _safe_quote(u):
+    return quote(u, safe=":/?#[]@!$&'()*+,;=%")
+
+
+def _parse_html(text):
+    """Return a BeautifulSoup tree using bs4 if available, else lxml shim."""
+    if BeautifulSoup is not None:
+        try:
+            return ("bs4", BeautifulSoup(text, "html.parser"))
+        except Exception:
+            pass
+    return ("lxml", HTML(text or ""))
+
+
+def _select(parsed, css_or_xpath_bs, xpath):
+    kind, tree = parsed
+    if kind == "bs4":
+        return tree.select(css_or_xpath_bs)
+    return tree.xpath(xpath) or []
+
+
+def _select_one(parsed, css_or_xpath_bs, xpath):
+    res = _select(parsed, css_or_xpath_bs, xpath)
+    return res[0] if res else None
+
+
+def _attr(node, name):
+    if node is None:
+        return ""
+    if hasattr(node, "get"):
+        v = node.get(name, "")
+        return v or ""
+    return ""
+
+
+def _text(node):
+    if node is None:
+        return ""
+    if hasattr(node, "get_text"):
+        return node.get_text(strip=True)
+    if hasattr(node, "text_content"):
+        return (node.text_content() or "").strip()
+    return (getattr(node, "text", "") or "").strip()
+
+
+# ───────────────────────────── HubCloud ─────────────────────────────
+
+def hubcloud(url):
+    """HubCloud entry: handle both /pack and single-file links."""
+    try:
+        if "/packs/" in url or "/pack/" in url:
+            links = _hubcloud_extract_pack(url)
+            if not links:
+                raise DirectDownloadLinkException("ERROR: HubCloud pack is empty")
+            last_err = None
+            for l in links:
+                try:
+                    return _hubcloud_bypass_single(l)
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise DirectDownloadLinkException(f"ERROR: HubCloud pack failed - {last_err}")
+        return _hubcloud_bypass_single(url)
+    except DirectDownloadLinkException:
+        raise
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: HubCloud - {e.__class__.__name__}: {e}") from e
+
+
+def _hubcloud_bypass_single(url):
+    base = _hc_base_for(url)
+    new_url = url.replace(_origin_of(url), base) if _origin_of(url) else url
+
+    try:
+        r = _dl_get(new_url)
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: HubCloud fetch failed - {e}") from e
+
+    parsed = _parse_html(r.text)
+
+    # Stage 1 — extract `var url = '...'` from inline scripts, fallback to .vd center a
+    link = ""
+    scripts = _select(parsed, "script", "//script")
+    for s in scripts:
+        body = ""
+        if hasattr(s, "string"):
+            body = s.string or ""
+        if not body and hasattr(s, "text"):
+            body = s.text or ""
+        if not body and hasattr(s, "text_content"):
+            body = s.text_content() or ""
+        m = re_search(r"var\s+url\s*=\s*'([^']+)'", body)
+        if m:
+            link = m.group(1)
+            break
+
+    if not link:
+        a = _select_one(parsed, "div.vd center a", '//div[@class="vd"]//center/a')
+        if a is not None:
+            link = _attr(a, "href")
+
+    if not link:
+        raise DirectDownloadLinkException("ERROR: HubCloud - intermediate link not found")
+
+    if not link.startswith("http"):
+        link = base + ("" if link.startswith("/") else "/") + link
+
+    # Stage 2 — final mirrors page, collect & rank all download buttons
+    try:
+        r2 = _dl_get(link)
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: HubCloud final fetch failed - {e}") from e
+
+    parsed2 = _parse_html(r2.text)
+    btns = _select(parsed2, "div.card-body h2 a.btn",
+                   '//div[contains(@class,"card-body")]//h2//a[contains(@class,"btn")]')
+
+    mirrors = []
+    for a in btns:
+        href = _attr(a, "href")
+        if not href:
+            continue
+        href = _safe_quote(href)
+        txt = _text(a).lower()
+        href_l = href.lower()
+
+        if "fslv2" in txt or "fslv2" in href_l:
+            t = "fslv2"
+        elif "fsl" in txt or "fsl" in href_l:
+            t = "fsl"
+        elif "pixeldra" in href_l or "pixel" in txt:
+            t = "pixel"
+        elif "10gbps" in txt or "10 gbps" in txt or "resume" in txt:
+            t = "direct"
+        elif "cloud" in txt or "cloud" in href_l:
+            t = "cloud"
+        elif "cdn" in txt or "cdn" in href_l:
+            t = "cdn"
+        else:
+            t = "direct"
+        mirrors.append({"type": t, "url": href})
+
+    if not mirrors:
+        # Fallback — any anchor pointing to a workers.dev / r2 / direct file
+        anchors = _select(parsed2, "a[href]", "//a[@href]")
+        for a in anchors:
+            href = _attr(a, "href")
+            if any(k in href.lower() for k in (".workers.dev", "r2.dev", "/download", "/dl/", "fastdl")):
+                mirrors.append({"type": "direct", "url": _safe_quote(href)})
+        if not mirrors:
+            raise DirectDownloadLinkException("ERROR: HubCloud - no mirrors found")
+
+    priority = {"fsl": 0, "direct": 1, "fslv2": 2, "cloud": 3, "cdn": 4, "pixel": 5}
+    mirrors.sort(key=lambda x: priority.get(x["type"], 99))
+    chosen = mirrors[0]["url"]
+    LOGGER.info(f"HubCloud picked [{mirrors[0]['type']}]: {chosen}")
+    return chosen
+
+
+def _hubcloud_extract_pack(url):
+    try:
+        r = _dl_get(url)
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: HubCloud pack fetch failed - {e}") from e
+    m = re_search(r"JSON\.parse\(`([\s\S]+?)`\)", r.text)
+    if not m:
+        return []
+    try:
+        data = jsonloads(m.group(1))
+    except Exception:
+        return []
+    base = _origin_of(url)
+    return [f"{base}/drive/{f['share_id']}" for f in data.get("files", []) if f.get("share_id")]
+
+
+# ───────────────────────────── GDFlix ─────────────────────────────
+
+def gdflix(url):
+    """GDFlix entry: detects /pack vs single, returns first working direct mirror."""
+    try:
+        html, final = _gdflix_fetch_html(url)
+        pack_links = _gdflix_extract_pack_links(html, final)
+        if len(pack_links) > 1:
+            last_err = None
+            for l in pack_links:
+                try:
+                    return _gdflix_bypass_single(l)
+                except Exception as e:
+                    last_err = e
+                    continue
+            raise DirectDownloadLinkException(f"ERROR: GDFlix pack failed - {last_err}")
+        return _gdflix_bypass_single(url)
+    except DirectDownloadLinkException:
+        raise
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: GDFlix - {e.__class__.__name__}: {e}") from e
+
+
+def _gdflix_fetch_html(url):
+    try:
+        r = _dl_get(url)
+    except Exception as e:
+        raise DirectDownloadLinkException(f"ERROR: GDFlix fetch failed - {e}") from e
+    return r.text, r.url
+
+
+def _gdflix_scan(text, pattern):
+    m = re_search(pattern, text or "", DOTALL)
+    return m.group(0) if m else None
+
+
+def _gdflix_extract_pack_links(html, base):
+    out = []
+    for m in re_findall(r'href="(/file/[A-Za-z0-9]+)"', html or ""):
+        full = urljoin(base, m)
+        if full not in out:
+            out.append(full)
+    return out
+
+
+def _gdflix_get_instant(url):
+    try:
+        r = _dl_get(url)
+    except Exception:
+        return None
+    return _gdflix_scan(r.text, r"https://instant\.busycdn\.cfd/[A-Za-z0-9:]+")
+
+
+def _unwrap_fastcdn(url):
+    if not url:
+        return None
+    if "fastcdn-dl.pages.dev" in url and "url=" in url:
+        try:
+            qs = parse_qs(urlparse(url).query)
+            pure = qs.get("url", [None])[0]
+            if pure:
+                pure = unquote(pure)
+                if "video-downloads.googleusercontent.com" in pure:
+                    return pure
+        except Exception:
+            pass
+        return None
+    return url
+
+
+def _gdflix_get_google(instant):
+    if not instant:
+        return None
+    try:
+        r = _dl_get(instant)
+        final = r.url or ""
+        if "video-downloads.googleusercontent.com" in final:
+            return final
+        if "fastcdn-dl.pages.dev" in final and "url=" in final:
+            qs = parse_qs(urlparse(final).query)
+            pure = qs.get("url", [None])[0]
+            if pure:
+                pure = unquote(pure)
+                if "video-downloads.googleusercontent.com" in pure:
+                    return pure
+    except Exception:
+        return None
+    return None
+
+
+def _gdflix_bypass_single(url):
+    html, final = _gdflix_fetch_html(url)
+
+    instant = _gdflix_get_instant(url)
+    google  = _unwrap_fastcdn(_gdflix_get_google(instant))
+
+    pix = _gdflix_scan(html, r"https://pixeldrain\.dev/[^\"']+")
+    if pix:
+        pix = pix.replace("?embed", "")
+
+    tg      = _gdflix_scan(html, r"https://t\.me/[A-Za-z0-9_/?=]+")
+    gofile_ = _gdflix_scan(html, r"https://gofile\.io/d/[A-Za-z0-9]+")
+    pub     = _gdflix_scan(html, r"https://pub\.[^\"'\s]+")
+    workers = _gdflix_scan(html, r"https://[A-Za-z0-9\-]+\.workers\.dev/[^\"]+")
+    test    = _gdflix_scan(html, r"https://test\.[^\"'\s]+")
+
+    links = []
+    if google:
+        links.append({"type": "google", "url": google})
+    if gofile_:
+        links.append({"type": "gofile", "url": gofile_})
+    if pub:
+        u = _unwrap_fastcdn(pub)
+        if u:
+            links.append({"type": "pub", "url": u})
+    if workers:
+        u = _unwrap_fastcdn(workers)
+        if u:
+            links.append({"type": "workers", "url": u})
+    if test:
+        u = _unwrap_fastcdn(test)
+        if u:
+            links.append({"type": "test", "url": u})
+    if pix:
+        links.append({"type": "pixeldrain", "url": pix})
+    if tg:
+        links.append({"type": "telegram", "url": tg})
+
+    if not links:
+        raise DirectDownloadLinkException("ERROR: GDFlix - no usable links found")
+
+    priority = {"google": 0, "gofile": 1, "pub": 2, "workers": 3,
+                "test": 4, "pixeldrain": 5, "telegram": 6}
+    links.sort(key=lambda x: priority.get(x["type"], 99))
+    chosen = links[0]
+    LOGGER.info(f"GDFlix picked [{chosen['type']}]: {chosen['url']}")
+
+    # If chosen is a Telegram t.me link aria2 cannot fetch, try next non-tg.
+    if chosen["type"] == "telegram":
+        for alt in links:
+            if alt["type"] != "telegram":
+                LOGGER.info(f"GDFlix downgrading to [{alt['type']}]: {alt['url']}")
+                return alt["url"]
+    return chosen["url"]
