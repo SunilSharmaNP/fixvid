@@ -371,57 +371,8 @@ STICKER_DELETE_DURATION = int(environ.get('STICKER_DELETE_DURATION', 120))
 
 
 # ============================ IMAGES ==================================
-images = 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg'
 ENABLE_IMAGE_MODE = environ.get('ENABLE_IMAGE_MODE', 'True').lower() == 'true'
-IMAGE_ARIA = environ.get('IMAGE_ARIA', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_AUTH = environ.get('IMAGE_AUTH', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_BOLD = environ.get('IMAGE_BOLD', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_BYE = environ.get('IMAGE_BYE', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_CANCEL = environ.get('IMAGE_CANCEL', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_CAPTION = environ.get('IMAGE_CAPTION', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_COMMONS_CHECK = environ.get('IMAGE_COMMONS_CHECK', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_COMPLETE = environ.get('IMAGE_COMPLETE', images)
-IMAGE_CONEDIT = environ.get('IMAGE_CONEDIT', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_CONPRIVATE = environ.get('IMAGE_CONPRIVATE', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_CONSET = environ.get('IMAGE_CONSET', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_CONVIEW = environ.get('IMAGE_CONVIEW', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_DUMP = environ.get('IMAGE_DUMP', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_EXTENSION = environ.get('IMAGE_EXTENSION', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_GD = environ.get('IMAGE_GD', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_HELP = environ.get('IMAGE_HELP', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_HTML = environ.get('IMAGE_HTML', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_IMDB = environ.get('IMAGE_IMDB', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_INFO = environ.get('IMAGE_INFO', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_ITALIC = environ.get('IMAGE_ITALIC', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_JD = environ.get('IMAGE_JD', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_LOGS = environ.get('IMAGE_LOGS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_MDL = environ.get('IMAGE_MDL', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_MEDINFO = environ.get('IMAGE_MEDINFO', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_METADATA = environ.get('IMAGE_METADATA', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_MONO = environ.get('IMAGE_MONO', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_NORMAL = environ.get('IMAGE_NORMAL', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_OWNER = environ.get('IMAGE_OWNER', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_PAUSE = environ.get('IMAGE_PAUSE', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_PRENAME = environ.get('IMAGE_PRENAME', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_QBIT = environ.get('IMAGE_QBIT', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_RCLONE = environ.get('IMAGE_RCLONE', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_REMNAME = environ.get('IMAGE_REMNAME', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_RSS = environ.get('IMAGE_RSS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_SEARCH = environ.get('IMAGE_SEARCH', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_STATS = environ.get('IMAGE_STATS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_STATUS = environ.get('IMAGE_STATUS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_SUFNAME = environ.get('IMAGE_SUFNAME', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_TMDB = environ.get('IMAGE_TMDB', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_TXT = environ.get('IMAGE_TXT', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_UNAUTH = environ.get('IMAGE_UNAUTH', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_UNKNOW = environ.get('IMAGE_UNKNOW', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_USER = environ.get('IMAGE_USER', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_USETIINGS = environ.get('IMAGE_USETIINGS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_VIDTOOLS = environ.get('IMAGE_VIDTOOLS', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_WEL = environ.get('IMAGE_WEL', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_WIBU = environ.get('IMAGE_WIBU', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_YT = environ.get('IMAGE_YT', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
-IMAGE_ZIP = environ.get('IMAGE_ZIP', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
+IMAGE = environ.get('IMAGE', 'https://i.ibb.co/TBnyB2jP/IMG-20260426-092557-460.jpg')
 # ======================================================================
 
 
@@ -630,55 +581,7 @@ config_dict = {'BOT_TOKEN': BOT_TOKEN,
                'STICKERID_MIRROR': STICKERID_MIRROR,
                # IMAGES
                'ENABLE_IMAGE_MODE': ENABLE_IMAGE_MODE,
-               'IMAGE_ARIA': IMAGE_ARIA,
-               'IMAGE_AUTH': IMAGE_AUTH,
-               'IMAGE_BOLD': IMAGE_BOLD,
-               'IMAGE_BYE': IMAGE_BYE,
-               'IMAGE_CANCEL': IMAGE_CANCEL,
-               'IMAGE_CAPTION': IMAGE_CAPTION,
-               'IMAGE_COMPLETE': IMAGE_COMPLETE,
-               'IMAGE_CONEDIT': IMAGE_CONEDIT,
-               'IMAGE_CONPRIVATE': IMAGE_CONPRIVATE,
-               'IMAGE_CONSET': IMAGE_CONSET,
-               'IMAGE_CONVIEW': IMAGE_CONVIEW,
-               'IMAGE_DUMP': IMAGE_DUMP,
-               'IMAGE_EXTENSION': IMAGE_EXTENSION,
-               'IMAGE_GD': IMAGE_GD,
-               'IMAGE_HELP': IMAGE_HELP,
-               'IMAGE_HTML': IMAGE_HTML,
-               'IMAGE_IMDB': IMAGE_IMDB,
-               'IMAGE_INFO': IMAGE_INFO,
-               'IMAGE_ITALIC': IMAGE_ITALIC,
-               'IMAGE_JD': IMAGE_JD,
-               'IMAGE_LOGS': IMAGE_LOGS,
-               'IMAGE_MDL': IMAGE_MDL,
-               'IMAGE_MEDINFO': IMAGE_MEDINFO,
-               'IMAGE_METADATA': IMAGE_METADATA,
-               'IMAGE_MONO': IMAGE_MONO,
-               'IMAGE_NORMAL': IMAGE_NORMAL,
-               'IMAGE_OWNER': IMAGE_OWNER,
-               'IMAGE_PAUSE': IMAGE_PAUSE,
-               'IMAGE_PRENAME': IMAGE_PRENAME,
-               'IMAGE_QBIT': IMAGE_QBIT,
-               'IMAGE_RCLONE': IMAGE_RCLONE,
-               'IMAGE_REMNAME': IMAGE_REMNAME,
-               'IMAGE_RSS': IMAGE_RSS,
-               'IMAGE_SEARCH': IMAGE_SEARCH,
-               'IMAGE_STATS': IMAGE_STATS,
-               'IMAGE_STATUS': IMAGE_STATUS,
-               'IMAGE_SUFNAME': IMAGE_SUFNAME,
-               'IMAGE_TMDB': IMAGE_TMDB,
-               'IMAGE_TXT': IMAGE_TXT,
-               'IMAGE_UNAUTH': IMAGE_UNAUTH,
-               'IMAGE_UNKNOW': IMAGE_UNKNOW,
-               'IMAGE_USER': IMAGE_USER,
-               'IMAGE_USETIINGS': IMAGE_USETIINGS,
-               'IMAGE_VIDTOOLS': IMAGE_VIDTOOLS,
-               'IMAGE_WEL': IMAGE_WEL,
-               'IMAGE_WIBU': IMAGE_WIBU,
-               'IMAGE_YT': IMAGE_YT,
-               'IMAGE_ZIP': IMAGE_ZIP,
-               'IMAGE_COMMONS_CHECK': IMAGE_COMMONS_CHECK,
+               'IMAGE': IMAGE,
                # ACCOUNTS
                'JD_EMAIL': JD_EMAIL,
                'JD_PASS': JD_PASS,
