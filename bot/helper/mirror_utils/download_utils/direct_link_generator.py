@@ -50,11 +50,8 @@ class _ConfigShim:
 
 Config = _ConfigShim()
 
-# Optional: lxml-friendly bs4 fallback (we don't actually need bs4 anywhere)
-try:
-    from bs4 import BeautifulSoup  # noqa: F401
-except Exception:
-    BeautifulSoup = None
+# BeautifulSoup is required for HubCloud / GDFlix bypass
+from bs4 import BeautifulSoup
 
 # GoFile token cache to avoid rate limiting
 gofile_token_cache = None
@@ -409,131 +406,52 @@ def _xpath_one(tree, expr):
 
 
 def hubcloud_bypass_single(url):
-    """HubCloud single bypass — pure lxml + regex (no bs4)."""
     base = detect_hubcloud_base(url)
     new_url = url.replace(get_base(url), base)
 
-    headers = {"User-Agent": user_agent}
+    r = get(new_url, headers={"User-Agent": user_agent}, timeout=15)
+    soup = BeautifulSoup(r.text, "html.parser")
 
-    try:
-        r = get(new_url, headers=headers, timeout=20, allow_redirects=True)
-    except Exception as e:
-        raise DirectDownloadLinkException(
-            f"HubCloud: fetch failed - {e.__class__.__name__}"
-        )
-
-    text1 = r.text or ""
     link = ""
-
-    # Stage 1: regex-first (fast, no DOM needed)
-    m = re.search(r"var\s+url\s*=\s*'([^']+)'", text1)
-    if m:
-        link = m.group(1)
-
-    if not link:
-        m2 = re.search(
-            r'<meta[^>]+http-equiv=["\']refresh["\'][^>]*'
-            r'url=([^"\'>\s]+)',
-            text1, re.I,
-        )
-        if m2:
-            link = m2.group(1)
+    for s in soup.find_all("script"):
+        t = s.string or ""
+        m = re.search(r"var\s+url\s*=\s*'([^']+)'", t)
+        if m:
+            link = m.group(1)
+            break
 
     if not link:
-        tree1 = _parse_html(text1)
-        a = _xpath_one(tree1, "//div[contains(@class,'vd')]//center/a/@href")
+        a = soup.select_one("div.vd center a")
         if a:
-            link = a
-        else:
-            a = _xpath_one(
-                tree1, "//a[contains(@class,'btn-primary') or contains(@class,'btn-success')]/@href"
-            )
-            if a:
-                link = a
+            link = a.get("href", "")
 
     if not link:
-        raise DirectDownloadLinkException(
-            "HubCloud: intermediate link not found"
-        )
+        raise DirectDownloadLinkException("HubCloud: Link not found")
 
     if not link.startswith("http"):
-        link = base + ("/" if not link.startswith("/") else "") + link.lstrip("/")
+        link = base + link
 
-    # Stage 2: final mirrors page
-    try:
-        r2 = get(link, headers=headers, timeout=20, allow_redirects=True)
-    except Exception as e:
-        raise DirectDownloadLinkException(
-            f"HubCloud: stage2 fetch failed - {e.__class__.__name__}"
-        )
-
-    text2 = r2.text or ""
-    tree2 = _parse_html(text2)
+    r2 = get(link, headers={"User-Agent": user_agent}, timeout=15)
+    soup2 = BeautifulSoup(r2.text, "html.parser")
 
     mirrors = []
-    selectors = [
-        "//div[contains(@class,'card-body')]//h2//a[contains(@class,'btn')]/@href",
-        "//a[contains(@class,'btn-primary')]/@href",
-        "//a[contains(@class,'btn-success')]/@href",
-        "//a[contains(@class,'btn-danger')]/@href",
-        "//a[contains(@class,'btn-warning')]/@href",
-    ]
+    for a in soup2.select("div.card-body h2 a.btn"):
+        href = fix_url(a.get("href", ""))
+        txt = a.get_text(strip=True).lower()
 
-    seen = set()
-
-    def _add(href, text=""):
-        href = (href or "").strip()
-        if not href or not href.startswith("http"):
-            return
-        if href in seen:
-            return
-        seen.add(href)
-        t = (text or "").lower()
-        if "fslv2" in t:
-            tt = "fslv2"
-        elif "fsl" in t:
-            tt = "fsl"
-        elif "pixel" in href.lower():
-            tt = "pixel"
-        elif "workers.dev" in href.lower() or "r2.dev" in href.lower():
-            tt = "cloud"
+        if "fslv2" in txt:
+            t = "fslv2"
+        elif "fsl" in txt:
+            t = "fsl"
+        elif "pixel" in href:
+            t = "pixel"
         else:
-            tt = "direct"
-        mirrors.append({"type": tt, "url": fix_url(href)})
+            t = "direct"
 
-    # Attempt rich extraction (text + href)
-    rich_nodes = _xpath(
-        tree2, "//div[contains(@class,'card-body')]//h2//a[contains(@class,'btn')]"
-    )
-    for a in rich_nodes:
-        try:
-            href = a.get("href", "")
-            txt = (a.text_content() or "").strip()
-            _add(href, txt)
-        except Exception:
-            continue
-
-    # Fallback selectors (href-only)
-    if not mirrors:
-        for sel in selectors:
-            for href in _xpath(tree2, sel):
-                _add(href)
-
-    # Last-resort: regex over raw HTML for known mirror domains
-    if not mirrors:
-        for pat in [
-            r"https?://[A-Za-z0-9_\-]+\.workers\.dev/[^\s\"'<>]+",
-            r"https?://[A-Za-z0-9_\-]+\.r2\.dev/[^\s\"'<>]+",
-            r"https?://pixeldrain\.[^\s\"'<>]+",
-            r"https?://[^\s\"'<>]*hubcloud[^\s\"'<>]*download[^\s\"'<>]*",
-        ]:
-            for h in re.findall(pat, text2):
-                _add(h)
+        mirrors.append({"type": t, "url": href})
 
     if not mirrors:
-        raise DirectDownloadLinkException(
-            "HubCloud: no mirrors found on final page"
-        )
+        raise DirectDownloadLinkException("HubCloud: No mirrors found")
 
     priority = {"fsl": 0, "fslv2": 2, "direct": 3, "cloud": 4, "cdn": 5, "pixel": 6}
     mirrors.sort(key=lambda x: priority.get(x["type"], 99))
@@ -542,22 +460,13 @@ def hubcloud_bypass_single(url):
 
 
 def hubcloud_extract_pack(url):
-    """Extract pack file links from HubCloud pack page."""
-    try:
-        r = get(url, headers={"User-Agent": user_agent}, timeout=20)
-    except Exception:
-        return []
+    r = get(url, headers={"User-Agent": user_agent}, timeout=15)
+    m = re.search(r"JSON\.parse\(`([\s\S]+?)`\)", r.text)
 
-    text = r.text or ""
-    m = re.search(r"JSON\.parse\(`([\s\S]+?)`\)", text)
     if not m:
         return []
 
-    try:
-        data = json.loads(m.group(1))
-    except Exception:
-        return []
-
+    data = json.loads(m.group(1))
     base = get_base(url)
     return [f"{base}/drive/{f['share_id']}" for f in data.get("files", [])]
 
