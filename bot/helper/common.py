@@ -245,7 +245,7 @@ class TaskConfig:
             msg.append(f"{self.bulk[0]} -i {self.multi - 1} {self.options}")
             msgts = ' '.join(msg)
             if self.multi > 2:
-                msgts += f'\nCancel Multi: <code>/{BotCommands.CancelTaskCommand} {self.multiTag}</code>'
+                msgts += f'\nCancel Multi: /{BotCommands.CancelTaskCommand}_{self.multiTag}'
             nextmsg = await sendMessage(msgts, self.message)
         else:
             msg = [s.strip() for s in input_list]
@@ -259,7 +259,7 @@ class TaskConfig:
                 return
             msgts = ' '.join(msg)
             if self.multi > 2:
-                msgts += f'\nCancel Multi: <code>/{BotCommands.CancelTaskCommand} {self.multiTag}</code>'
+                msgts += f'\nCancel Multi: /{BotCommands.CancelTaskCommand}_{self.multiTag}'
             nextmsg = await sendMessage(msgts, nextmsg)
             if not nextmsg:
                 if retry < 3:
