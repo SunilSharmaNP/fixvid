@@ -1,7 +1,10 @@
 from __future__ import annotations
+import aiohttp
+from aiofiles import open as aio_open
 from aiofiles.os import path as aiopath, rename as aiorename, makedirs
 from aioshutil import copy
 from asyncio import sleep, gather
+from json import dumps as json_dumps
 from logging import getLogger
 from natsort import natsorted
 from os import path as ospath, walk
@@ -51,6 +54,59 @@ class TgUploader:
         chunk_size = current - self._last_uploaded
         self._last_uploaded = current
         self._processed_bytes += chunk_size
+
+    async def _set_video_cover(self, video_msg, cover_path, caption=None):
+        """Set HD video cover via Telegram Bot API editMessageMedia.
+
+        Uses user's saved thumbnail if present, otherwise the auto-generated
+        one passed in. Called after video is uploaded to TG server so the
+        cover appears when the message is rendered in the Telegram app.
+        """
+        try:
+            if not video_msg or not getattr(video_msg, 'video', None):
+                return video_msg
+            if not cover_path or not await aiopath.exists(cover_path):
+                LOGGER.info('No cover photo available for user: %s', self._listener.user_id)
+                return video_msg
+
+            bot_token = config_dict.get('BOT_TOKEN')
+            if not bot_token:
+                LOGGER.error('BOT_TOKEN not found in config_dict, cannot set HD cover')
+                return video_msg
+
+            LOGGER.info('Setting HD video cover for message: %s', video_msg.id)
+            api_url = f'https://api.telegram.org/bot{bot_token}/editMessageMedia'
+
+            form = aiohttp.FormData()
+            form.add_field('chat_id', str(video_msg.chat.id))
+            form.add_field('message_id', str(video_msg.id))
+
+            media_json = {
+                'type': 'video',
+                'media': video_msg.video.file_id,
+                'supports_streaming': True,
+                'cover': 'attach://cover',
+            }
+            if caption:
+                media_json['caption'] = caption
+                media_json['parse_mode'] = 'HTML'
+            form.add_field('media', json_dumps(media_json))
+
+            async with aio_open(cover_path, 'rb') as f:
+                cover_data = await f.read()
+            form.add_field('cover', cover_data, filename='cover.jpg', content_type='image/jpeg')
+
+            async with aiohttp.ClientSession() as session:
+                async with session.post(api_url, data=form) as resp:
+                    result = await resp.json()
+                    if result.get('ok'):
+                        LOGGER.info('Video cover set successfully for message: %s', video_msg.id)
+                    else:
+                        LOGGER.error('Failed to set HD cover: %s', result.get('description', 'Unknown error'))
+            return video_msg
+        except Exception as e:
+            LOGGER.error('Error in _set_video_cover: %s', e, exc_info=True)
+            return video_msg
 
     async def upload(self, o_files, m_size):
         await self._user_settings()
@@ -195,6 +251,9 @@ class TgUploader:
                                                                disable_notification=True,
                                                                progress=self._upload_progress,
                                                                reply_to_message_id=self._send_msg.id)
+
+                if self._send_msg and thumb and thumb != 'none' and await aiopath.exists(thumb):
+                    await self._set_video_cover(self._send_msg, thumb, caption)
             elif is_audio:
                 key = 'audios'
                 duration, artist, title = await get_media_info(self._up_path)
