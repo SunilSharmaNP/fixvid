@@ -283,9 +283,13 @@ class TgUploader:
                 return
             await self._final_message(ss_image, bool((is_video or is_audio) and self._listener.user_dict.get('mediainfo', False)))
             
-            await self._copy_Leech(self._listener.user_id, self._send_msg)
+            pm_copy = await self._copy_Leech(self._listener.user_id, self._send_msg)
+            if is_video and pm_copy and thumb and thumb != 'none' and await aiopath.exists(thumb):
+                await self._set_video_cover(pm_copy, thumb, caption)
             if self._listener.upDest:
-                await self._copy_Leech(self._listener.upDest, self._send_msg)
+                up_copy = await self._copy_Leech(self._listener.upDest, self._send_msg)
+                if is_video and up_copy and thumb and thumb != 'none' and await aiopath.exists(thumb):
+                    await self._set_video_cover(up_copy, thumb, caption)
 
             if not self._is_cancelled and self._media_group and (self._send_msg.video or self._send_msg.document):
                 if match := re_match(r'.+(?=\.0*\d+$)|.+(?=\.part\d+\..+$)', self._up_path):
