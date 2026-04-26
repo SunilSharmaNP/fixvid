@@ -1224,6 +1224,41 @@ async def event_handler(client: Client, query: CallbackQuery, pfunc: partial,
     client.remove_handler(*handler)
 
 
+async def set_thumb_from_reply(message: Message):
+    """Set thumbnail for the command sender from the photo in the replied-to message."""
+    from_user = message.from_user
+    user_id   = from_user.id
+    reply_msg = message.reply_to_message
+
+    if not reply_msg:
+        emsg = await sendMessage('❌ Reply to a message that contains a photo to set it as thumbnail.\n\n'
+                                 '<i>Usage:</i> <code>/uset -s thumb</code> (as a reply to a photo)', message)
+        await auto_delete_message(message, emsg, stime=10)
+        return
+    if not reply_msg.photo:
+        emsg = await sendMessage('❌ The replied message must contain a photo!', message)
+        await auto_delete_message(message, emsg, stime=10)
+        return
+
+    pmsg = await sendMessage('<i>Processing thumbnail, please wait...</i>', message)
+    try:
+        await makedirs('thumbnails', exist_ok=True)
+        des_dir = await createThumb(reply_msg, user_id)
+        await update_user_ldata(user_id, 'thumb', des_dir)
+        if DATABASE_URL:
+            await DbManager().update_user_doc(user_id, 'thumb', des_dir)
+        await deleteMessage(message, pmsg)
+        ok = await sendPhoto(f'✅ <b>Thumbnail set successfully!</b>\n\n'
+                             f'├ <b>User :</b> {from_user.mention}\n'
+                             f'└ <b>Path :</b> <code>{des_dir}</code>',
+                             message, des_dir)
+        await auto_delete_message(message, ok, stime=15)
+    except Exception as e:
+        await deleteMessage(message, pmsg)
+        emsg = await sendMessage(f'❌ Failed to set thumbnail: <code>{escape(str(e))}</code>', message)
+        await auto_delete_message(message, emsg, stime=10)
+
+
 @new_task
 async def user_settings(_, message: Message):
     from_user = message.from_user
@@ -1231,6 +1266,19 @@ async def user_settings(_, message: Message):
     if fmsg := await UseCheck(message).run():
         await auto_delete_message(message, fmsg)
         return
+
+    # ── Quick set commands: /uset -s <key> ──
+    args = (message.text or '').split()
+    if len(args) >= 3 and args[1] == '-s':
+        key = args[2].lower()
+        if key == 'thumb':
+            await set_thumb_from_reply(message)
+            return
+        emsg = await sendMessage(f'❌ Unknown quick-set key: <code>{escape(key)}</code>\n\n'
+                                 '<i>Supported:</i> <code>thumb</code>', message)
+        await auto_delete_message(message, emsg, stime=10)
+        return
+
     msg, image, buttons = await get_user_settings(from_user, None, None)
     if await aiopath.exists(thumb := ospath.join('thumbnails', f'{message.from_user.id}.jpg')):
         image = thumb
