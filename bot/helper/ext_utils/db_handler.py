@@ -5,11 +5,30 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
 from os.path import exists as _path_exists
 
-# `config.py` is the new Python configuration source. It populates
-# os.environ on import and exposes `settings_to_dict()` for snapshotting.
+# `config.py` is the new Python configuration source.
 import config as _bot_config
 
 from bot import user_data, rss_dict, bot_id, config_dict, aria2_options, qbit_options, bot_loop, DATABASE_URL, LOGGER
+
+
+def _config_settings_dict():
+    """Snapshot all UPPERCASE constants from the user `config.py` to a dict.
+
+    Uses the helper `settings_to_dict()` if the user kept it in their
+    template, otherwise walks module attributes itself so a minimal
+    Colab/hand-written config.py still snapshots correctly to MongoDB."""
+    fn = getattr(_bot_config, 'settings_to_dict', None)
+    if callable(fn):
+        return fn()
+    out = {}
+    for _k in dir(_bot_config):
+        if not _k.isupper() or _k.startswith('_'):
+            continue
+        _v = getattr(_bot_config, _k)
+        if callable(_v):
+            continue
+        out[_k] = '' if _v is None else str(_v)
+    return out
 
 
 class DbManager:
@@ -83,7 +102,7 @@ class DbManager:
         if _path_exists('config.env'):
             current_config = dict(dotenv_values('config.env'))
         else:
-            current_config = _bot_config.settings_to_dict()
+            current_config = _config_settings_dict()
         await self._db.settings.deployConfig.replace_one({'_id': bot_id}, current_config, upsert=True)
 
     async def update_config(self, dict_):
