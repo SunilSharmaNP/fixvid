@@ -142,7 +142,7 @@ class YoutubeDLHelper:
 
     def extractMetaData(self):
         if self._listener.link.startswith(('rtmp', 'mms', 'rstp', 'rtmps')):
-            self.opts['external_downloader'] = 'ffmpeg'
+            self.opts['external_downloader'] = FFMPEG_NAME
         with YoutubeDL(self.opts) as ydl:
             try:
                 result = ydl.extract_info(self._listener.link, download=False)
