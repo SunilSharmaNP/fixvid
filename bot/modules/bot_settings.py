@@ -343,10 +343,23 @@ async def update_private_file(_, message: Message, omsg: Message):
             load_dotenv('config.env', override=True)
             await load_config()
         elif file_name == 'config.py':
-            # User uploaded a fresh `config.py`. Re-import it so its values
-            # are pushed into os.environ, then re-run the bot's config loader.
+            # User uploaded a fresh `config.py`. Re-import it and push every
+            # UPPERCASE non-empty attr into os.environ, then re-run the bot's
+            # config loader. Works for both the full template config.py
+            # (with built-in load_into_environ) and minimal hand-written ones.
             import config as _bot_config_mod
             _reload_module(_bot_config_mod)
+            from os import environ as _environ
+            for _k in dir(_bot_config_mod):
+                if not _k.isupper() or _k.startswith('_'):
+                    continue
+                _v = getattr(_bot_config_mod, _k)
+                if callable(_v) or _v is None:
+                    continue
+                _t = str(_v)
+                if _t == '':
+                    continue
+                _environ[_k] = _t
             await load_config()
         elif file_name in ('.netrc', 'netrc'):
             if file_name == 'netrc':
