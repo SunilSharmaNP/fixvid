@@ -23,7 +23,7 @@ from bot.helper.ext_utils.telegram_helper import TeleContent
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage, auto_delete_message, sendPhoto, editPhoto, deleteMessage, editMessage, sendCustom
+from bot.helper.telegram_helper.message_utils import sendMessage, auto_delete_message, sendPhoto, sendingMessage, editPhoto, editingMessage, deleteMessage, editMessage, sendCustom
 
 
 handler_dict = {}
@@ -847,7 +847,7 @@ async def update_user_settings(query: CallbackQuery, data: str = None, uset_data
             image = thumb
         else:
             image = config_dict['IMAGE_USETIINGS']
-    await editPhoto(text, query.message, image, button)
+    await editingMessage(text, query.message, image, button)
 
 
 async def set_user_settings(_, message: Message, query: CallbackQuery, key: str):
