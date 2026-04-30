@@ -3,6 +3,11 @@ from aiofiles.os import path as aiopath, makedirs
 from dotenv import dotenv_values
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
+from os.path import exists as _path_exists
+
+# `config.py` is the new Python configuration source. It populates
+# os.environ on import and exposes `settings_to_dict()` for snapshotting.
+import config as _bot_config
 
 from bot import user_data, rss_dict, bot_id, config_dict, aria2_options, qbit_options, bot_loop, DATABASE_URL, LOGGER
 
@@ -73,7 +78,12 @@ class DbManager:
     async def update_deploy_config(self):
         if self._err:
             return
-        current_config = dict(dotenv_values('config.env'))
+        # Prefer the new `config.py` source of truth. If only the legacy
+        # `config.env` exists, fall back to it.
+        if _path_exists('config.env'):
+            current_config = dict(dotenv_values('config.env'))
+        else:
+            current_config = _bot_config.settings_to_dict()
         await self._db.settings.deployConfig.replace_one({'_id': bot_id}, current_config, upsert=True)
 
     async def update_config(self, dict_):
