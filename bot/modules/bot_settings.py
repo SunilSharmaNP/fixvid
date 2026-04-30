@@ -3,6 +3,7 @@ from aiofiles.os import rename, path as aiopath
 from asyncio import create_subprocess_exec, create_subprocess_shell, sleep, gather
 from dotenv import load_dotenv
 from functools import partial
+from importlib import reload as _reload_module
 from os import getcwd, environ
 from pyrogram import Client
 from pyrogram.filters import command, regex, create
@@ -96,7 +97,7 @@ async def get_buttons(key=None, edit_type=None):
         buttons.button_data('<<', 'botset back')
         buttons.button_data('Close', 'botset close')
         msg = ('<b>PRIVATE FILES</b>\n'
-               '<b>┌</b> <code>config.env</code>\n'
+               '<b>┌</b> <code>config.py</code>\n'
                '<b>├</b> <code>credentials.json</code>\n'
                '<b>├</b> <code>token.pickle</code>\n'
                '<b>├</b> <code>accounts.zip</code>\n'
@@ -309,7 +310,9 @@ async def update_private_file(_, message: Message, omsg: Message):
     handler_dict[message.chat.id] = False
     if not message.media and (file_name := message.text):
         fn = file_name.rsplit('.zip', 1)[0]
-        if file_name != 'config.env':
+        # Don't wipe the active configuration files — they're treated as
+        # in-place reloads further down rather than deletable assets.
+        if file_name not in ('config.env', 'config.py'):
             await clean_target(fn)
         if fn == 'accounts':
             await gather(clean_target('accounts'), clean_target('rclone_sa'))
@@ -338,6 +341,12 @@ async def update_private_file(_, message: Message, omsg: Message):
                 await DbManager().update_config({'USE_SERVICE_ACCOUNTS': True})
         elif file_name == 'config.env':
             load_dotenv('config.env', override=True)
+            await load_config()
+        elif file_name == 'config.py':
+            # User uploaded a fresh `config.py`. Re-import it so its values
+            # are pushed into os.environ, then re-run the bot's config loader.
+            import config as _bot_config_mod
+            _reload_module(_bot_config_mod)
             await load_config()
         elif file_name in ('.netrc', 'netrc'):
             if file_name == 'netrc':
