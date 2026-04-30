@@ -239,4 +239,4 @@ def get_readable_message(sid: int, is_user: bool, page_no: int=1, status : str='
             f'🖥 <b>CPU:</b> {cpu_percent()}% | 💾 <b>F:</b> {free_disk} [{used_pct}%]\n'
             f'🥩 <b>RAM:</b> {virtual_memory().percent}% | ⌛ <b>Uptime:</b> {get_readable_time(time() - botStartTime)}\n'
             f'↳ ▼ <b>DL:</b> {get_readable_file_size(dl_speed)}/s | ▲ <b>UL:</b> {get_readable_file_size(up_speed)}/s')
-    return f'<blockquote>{msg}</blockquote>', buttons.build_menu(6)
+    return msg, buttons.build_menu(6)
