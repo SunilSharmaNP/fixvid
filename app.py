@@ -6,5 +6,5 @@ def hello_world():
     return 'GreyMatters'
 
 
-if name == "__main__":
+if __name__ == "__main__":
     app.run()
