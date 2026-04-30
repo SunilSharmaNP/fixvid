@@ -1,4 +1,9 @@
 from sys import exit
+# `config.py` is the new Python configuration source. Importing it pushes
+# all UPPERCASE settings into os.environ so the rest of this script works
+# unchanged. `config.env` (loaded below if present) acts as a legacy
+# override only.
+import config as _bot_config  # noqa: F401  (side-effect import)
 from dotenv import load_dotenv, dotenv_values
 from logging import (
     FileHandler,
@@ -30,7 +35,11 @@ basicConfig(
     level=INFO,
 )
 
-load_dotenv("config.env", override=True)
+# Optional legacy fallback: if `config.env` is still around, load it on top
+# of the values that `config.py` already populated. New deployments only need
+# `config.py`.
+if path.exists("config.env"):
+    load_dotenv("config.env", override=True)
 
 try:
     if bool(environ.get("_____REMOVE_THIS_LINE_____")):
@@ -58,9 +67,16 @@ if DATABASE_URL is not None:
         config_dict = db.settings.config.find_one({"_id": BOT_ID})
         if old_config is not None:
             del old_config["_id"]
+        # Compare against the active deploy config. Use config.env's values
+        # when that file exists (legacy installs), otherwise pull the snapshot
+        # from config.py.
+        if path.exists("config.env"):
+            _active_deploy_config = dict(dotenv_values("config.env"))
+        else:
+            _active_deploy_config = _bot_config.settings_to_dict()
         if (
             old_config is not None
-            and old_config == dict(dotenv_values("config.env"))
+            and old_config == _active_deploy_config
             or old_config is None
         ) and config_dict is not None:
             environ["UPSTREAM_REPO"] = config_dict["UPSTREAM_REPO"]
