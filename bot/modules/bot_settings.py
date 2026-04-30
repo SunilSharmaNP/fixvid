@@ -26,7 +26,7 @@ from bot.helper.stream_utils.web_services import server, start_server
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendFile, sendMessage, sendingMessage, editMessage, editPhoto, deleteMessage, update_status_message
+from bot.helper.telegram_helper.message_utils import sendFile, sendMessage, sendingMessage, editingMessage, editMessage, editPhoto, deleteMessage, update_status_message
 from bot.modules.rss import addJob
 from bot.modules.torrent_search import initiate_search_tools
 
@@ -153,10 +153,7 @@ async def get_buttons(key=None, edit_type=None):
 
 async def update_buttons(message: Message, key: str=None, edit_type: str=None):
     msg, image, buttons = await get_buttons(key, edit_type)
-    if config_dict['ENABLE_IMAGE_MODE']:
-        await editPhoto(msg, message, image, buttons)
-    else:
-        await editMessage(msg, message, buttons)
+    await editingMessage(msg, message, image, buttons)
 
 
 async def edit_variable(_, message: Message, omsg: Message, key: str):
