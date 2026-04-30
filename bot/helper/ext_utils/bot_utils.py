@@ -223,7 +223,15 @@ def new_thread(func):
         except RuntimeError:
             running = None
         if running is bot_loop:
+            # Caller is on the bot loop (e.g. pyrofork dispatcher). Return an
+            # asyncio Task so it can be awaited.
             return bot_loop.create_task(func(*args, **kwargs))
+        # Caller is on another thread (e.g. aria2 listener) or another loop.
         future = run_coroutine_threadsafe(func(*args, **kwargs), bot_loop)
-        return wrap_future(future)
+        if running is None:
+            # Plain sync thread — caller does not await; return the concurrent
+            # Future as the original code did.
+            return future
+        # Caller is on a different asyncio loop — bind the wrapping to it.
+        return wrap_future(future, loop=running)
     return wrapper
