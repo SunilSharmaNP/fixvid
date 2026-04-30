@@ -136,9 +136,11 @@ VID_MODE = {'vid_vid': 'Video + Video',
             'rmstream': 'Remove Stream'}
 
 DEFAULT_SPLIT_SIZE = 2097151000
-ARIA_NAME = environ.get('ARIA_NAME', 'aria2c')
-QBIT_NAME = environ.get('QBIT_NAME', 'qbittorrent-nox')
-FFMPEG_NAME = environ.get('FFMPEG_NAME', 'ffmpeg')
+ARIA_NAME = environ.get('ARIA_NAME', 'blitzfetcher')
+QBIT_NAME = environ.get('QBIT_NAME', 'stormtorrent')
+FFMPEG_NAME = environ.get('FFMPEG_NAME', 'mediaforge')
+RCLONE_NAME = environ.get('RCLONE_NAME', 'ghostdrive')
+SABNZBD_NAME = environ.get('SABNZBD_NAME', 'newsripper')
 
 # ============================ REQUIRED ================================
 if not (BOT_TOKEN := environ.get('BOT_TOKEN', '6499364659:AAHMmUxMWag28I9V_9YJBi8qaZWZ0VstGEk')):
