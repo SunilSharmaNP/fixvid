@@ -61,8 +61,28 @@ def handle_message(func):
 
 
 async def sendingMessage(text: str, message: Message, photo, reply_markup: InlineKeyboardMarkup=None):
-    return (await sendPhoto(text, message, photo, reply_markup) if config_dict['ENABLE_IMAGE_MODE'] else
-            await sendMessage(limit.text(text), message, reply_markup))
+    if config_dict['ENABLE_IMAGE_MODE'] and photo:
+        sent = await sendPhoto(text, message, photo, reply_markup)
+        if sent:
+            return sent
+    return await sendMessage(limit.text(text), message, reply_markup)
+
+
+async def editingMessage(text: str, message: Message, photo, reply_markup: InlineKeyboardMarkup=None):
+    """Edit a settings/status message. Picks the right edit method based on
+    the original message type, and falls back to plain text on photo errors
+    so the user always sees an updated message with buttons."""
+    if getattr(message, 'photo', None):
+        if config_dict['ENABLE_IMAGE_MODE'] and photo:
+            edited = await editPhoto(text, message, photo, reply_markup)
+            if edited and not isinstance(edited, str):
+                return edited
+        try:
+            return await message.edit_caption(limit.caption(text), reply_markup=reply_markup)
+        except Exception as e:
+            LOGGER.error('editingMessage(caption fallback): %s', e)
+            return None
+    return await editMessage(text, message, reply_markup)
 
 
 @handle_message
