@@ -1,8 +1,8 @@
 from sys import exit
-# `config.py` is the new Python configuration source. Importing it pushes
-# all UPPERCASE settings into os.environ so the rest of this script works
-# unchanged. `config.env` (loaded below if present) acts as a legacy
-# override only.
+# `config.py` is the new Python configuration source. The defensive loaders
+# below push every UPPERCASE non-empty constant into os.environ and provide
+# a snapshot helper -- both work whether the user kept the full template
+# `config.py` or wrote a minimal Colab-style one with just BOT_TOKEN etc.
 import config as _bot_config  # noqa: F401  (side-effect import)
 from dotenv import load_dotenv, dotenv_values
 from logging import (
@@ -16,6 +16,42 @@ from logging import (
     ERROR,
 )
 from os import path, environ, remove
+
+
+def _push_config_to_environ(mod):
+    """Push UPPERCASE, non-empty, non-callable attrs of *mod* into os.environ.
+
+    Skips empty strings / None so downstream `environ.get(KEY, default)`
+    falls back to the in-code default and we never crash on int('')."""
+    for _k in dir(mod):
+        if not _k.isupper() or _k.startswith("_"):
+            continue
+        _v = getattr(mod, _k)
+        if callable(_v) or _v is None:
+            continue
+        _t = str(_v)
+        if _t == "":
+            continue
+        environ[_k] = _t
+
+
+def _config_settings_dict():
+    """Snapshot all UPPERCASE constants of the user `config.py` to a dict."""
+    fn = getattr(_bot_config, "settings_to_dict", None)
+    if callable(fn):
+        return fn()
+    out = {}
+    for _k in dir(_bot_config):
+        if not _k.isupper() or _k.startswith("_"):
+            continue
+        _v = getattr(_bot_config, _k)
+        if callable(_v):
+            continue
+        out[_k] = "" if _v is None else str(_v)
+    return out
+
+
+_push_config_to_environ(_bot_config)
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from subprocess import run as srun
@@ -73,7 +109,7 @@ if DATABASE_URL is not None:
         if path.exists("config.env"):
             _active_deploy_config = dict(dotenv_values("config.env"))
         else:
-            _active_deploy_config = _bot_config.settings_to_dict()
+            _active_deploy_config = _config_settings_dict()
         if (
             old_config is not None
             and old_config == _active_deploy_config
