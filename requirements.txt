@@ -9,7 +9,6 @@ heroku3
 pycrypto
 aiofiles
 aioshutil
-anytree
 apscheduler
 aria2p
 asyncio
@@ -25,6 +24,7 @@ google-auth-oauthlib
 gunicorn
 httpx
 lxml
+lxml_html_clean
 motor
 natsort
 pillow
@@ -45,11 +45,7 @@ xattr
 yt-dlp
 html_telegraph_poster
 aiohttp
-aiofiles
-aioshutil
-anytree==2.8.0
-apscheduler
-aria2p
+anytree
 asyncio
 beautifulsoup4
 cinemagoer
@@ -86,4 +82,4 @@ tenacity
 tgcrypto
 uvloop
 xattr
-yt-dlp
+yt-dlp[default,curl-cffi]
