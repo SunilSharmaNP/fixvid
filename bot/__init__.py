@@ -2,14 +2,55 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI, Client as ariaClient
 from asyncio import Lock
 from base64 import b64decode
-# `config.py` is the new Python-style configuration source; importing it
-# auto-populates os.environ so the rest of this module keeps using
-# `environ.get(...)` exactly as before. `dotenv` is still imported for the
-# optional/legacy `config.env` fallback below.
+# `config.py` is the new Python-style configuration source. The defensive
+# loader below pushes every UPPERCASE non-empty constant into os.environ so
+# the rest of this module keeps using `environ.get(...)` exactly as before --
+# regardless of whether the user supplied the full template `config.py`
+# (with built-in helpers) or a minimal hand-written / Colab-generated one.
 import config as _bot_config  # noqa: F401  (side-effect import)
 from dotenv import load_dotenv, dotenv_values
 from logging import getLogger, FileHandler, StreamHandler, basicConfig, INFO, ERROR, warning as log_warning
 from os import remove as osremove, path as ospath, environ, getcwd
+
+
+def _push_config_to_environ(mod):
+    """Push UPPERCASE, non-empty, non-callable attrs of *mod* into os.environ.
+
+    Empty strings / None are skipped so downstream `environ.get(KEY, default)`
+    falls back to the in-code default and we never crash on int('')."""
+    for _k in dir(mod):
+        if not _k.isupper() or _k.startswith('_'):
+            continue
+        _v = getattr(mod, _k)
+        if callable(_v) or _v is None:
+            continue
+        _t = str(_v)
+        if _t == '':
+            continue
+        environ[_k] = _t
+
+
+def _config_settings_dict():
+    """Return all UPPERCASE constants from the user `config.py` as a flat dict.
+
+    Prefers the helper `settings_to_dict()` if the user kept it; otherwise
+    walks the module attributes itself so a minimal Colab-style config.py
+    (just BOT_TOKEN/TELEGRAM_API/etc.) still snapshots correctly to MongoDB."""
+    fn = getattr(_bot_config, 'settings_to_dict', None)
+    if callable(fn):
+        return fn()
+    out = {}
+    for _k in dir(_bot_config):
+        if not _k.isupper() or _k.startswith('_'):
+            continue
+        _v = getattr(_bot_config, _k)
+        if callable(_v):
+            continue
+        out[_k] = '' if _v is None else str(_v)
+    return out
+
+
+_push_config_to_environ(_bot_config)
 from pymongo import MongoClient
 from pyrogram import Client as tgClient, __version__
 from pyrogram.enums import ParseMode
@@ -120,7 +161,7 @@ if DATABASE_URL := environ.get('DATABASE_URL', 'mongodb+srv://hello:hello@cluste
         if ospath.exists('config.env'):
             current_config = dict(dotenv_values('config.env'))
         else:
-            current_config = _bot_config.settings_to_dict()
+            current_config = _config_settings_dict()
         old_config = db.settings.deployConfig.find_one({'_id': bot_id})
         if old_config is None:
             db.settings.deployConfig.replace_one({'_id': bot_id}, current_config, upsert=True)
