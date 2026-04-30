@@ -2,6 +2,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aria2p import API as ariaAPI, Client as ariaClient
 from asyncio import Lock
 from base64 import b64decode
+# `config.py` is the new Python-style configuration source; importing it
+# auto-populates os.environ so the rest of this module keeps using
+# `environ.get(...)` exactly as before. `dotenv` is still imported for the
+# optional/legacy `config.env` fallback below.
+import config as _bot_config  # noqa: F401  (side-effect import)
 from dotenv import load_dotenv, dotenv_values
 from logging import getLogger, FileHandler, StreamHandler, basicConfig, INFO, ERROR, warning as log_warning
 from os import remove as osremove, path as ospath, environ, getcwd
@@ -42,7 +47,11 @@ LOGGER = getLogger(__name__)
 
 aria2 = ariaAPI(ariaClient(host='http://localhost', port=6800, secret=''))
 
-load_dotenv('config.env', override=True)
+# Optional legacy fallback: if a `config.env` file is still present in the
+# project root, load it on top of config.py so existing deployments continue
+# to work. New installations only need `config.py`.
+if ospath.exists('config.env'):
+    load_dotenv('config.env', override=True)
 
 Intervals = {'status': {}, 'qb': '', 'jd': ''}
 QbTorrents = {}
@@ -106,7 +115,12 @@ if DATABASE_URL := environ.get('DATABASE_URL', 'mongodb+srv://hello:hello@cluste
     try:
         conn = MongoClient(DATABASE_URL)
         db = conn.mltb
-        current_config = dict(dotenv_values('config.env'))
+        # Snapshot the active configuration. Prefer the new `config.py`
+        # source of truth; fall back to `config.env` if only that file exists.
+        if ospath.exists('config.env'):
+            current_config = dict(dotenv_values('config.env'))
+        else:
+            current_config = _bot_config.settings_to_dict()
         old_config = db.settings.deployConfig.find_one({'_id': bot_id})
         if old_config is None:
             db.settings.deployConfig.replace_one({'_id': bot_id}, current_config, upsert=True)
