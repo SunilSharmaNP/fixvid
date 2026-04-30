@@ -1,5 +1,5 @@
 from aiohttp import ClientSession
-from asyncio import create_subprocess_shell, create_subprocess_exec, run_coroutine_threadsafe, gather, sleep
+from asyncio import create_subprocess_shell, create_subprocess_exec, run_coroutine_threadsafe, wrap_future, get_running_loop, gather, sleep
 from asyncio.subprocess import PIPE
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
@@ -207,8 +207,23 @@ def async_to_sync(func, *args, wait=True, **kwargs):
 
 
 def new_thread(func):
+    """Schedule an async function on bot_loop.
+
+    Returns an awaitable so callers (including pyrofork's dispatcher, which
+    does ``await callback(...)`` since v2.3.x) can await it. When ``wait=True``
+    the call blocks (used from sync threads) and returns the result directly.
+    """
     @wraps(func)
     def wrapper(*args, wait=False, **kwargs):
+        if wait:
+            future = run_coroutine_threadsafe(func(*args, **kwargs), bot_loop)
+            return future.result()
+        try:
+            running = get_running_loop()
+        except RuntimeError:
+            running = None
+        if running is bot_loop:
+            return bot_loop.create_task(func(*args, **kwargs))
         future = run_coroutine_threadsafe(func(*args, **kwargs), bot_loop)
-        return future.result() if wait else future
+        return wrap_future(future)
     return wrapper
