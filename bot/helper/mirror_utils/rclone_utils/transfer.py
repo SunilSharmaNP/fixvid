@@ -8,7 +8,7 @@ from json import loads
 from random import randrange
 from re import findall as re_findall
 
-from bot import config_dict, LOGGER
+from bot import config_dict, LOGGER, RCLONE_NAME
 from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async
 from bot.helper.ext_utils.files_utils import get_mime_type, count_files_and_folders
 from bot.helper.listeners import tasks_listener as task
@@ -150,7 +150,7 @@ class RcloneTransferHelper:
         else:
             epath = f'{remote}:{rc_path}{self._listener.name}'
             destination = epath
-        cmd = ['rclone', 'lsjson', '--fast-list', '--no-mimetype', '--no-modtime', '--config', config_path, epath]
+        cmd = [RCLONE_NAME, 'lsjson', '--fast-list', '--no-mimetype', '--no-modtime', '--config', config_path, epath]
         res, err, code = await cmd_exec(cmd)
         if code == 0:
             result = loads(res)
@@ -319,7 +319,7 @@ class RcloneTransferHelper:
 
     def _getUpdatedCommand(self, config_path, source, destination, method):
         ext = '*.{' + ','.join(self._listener.extensionFilter) + '}'
-        cmd = ['rclone', '--fast-list', '--config', config_path, '-P']
+        cmd = [RCLONE_NAME, '--fast-list', '--config', config_path, '-P']
         cmd.extend(method) if isinstance(method, list) else cmd.append(method)
         cmd.append(source)
         cmd.extend(destination) if isinstance(destination, list) else cmd.append(destination)
