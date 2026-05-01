@@ -8,7 +8,7 @@ from pyrogram.types import Message
 from secrets import token_urlsafe
 from urllib.parse import urlparse
 
-from bot import bot, task_dict, task_dict_lock, config_dict, LOGGER
+from bot import bot, task_dict, task_dict_lock, config_dict, LOGGER, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import is_premium_user, sync_to_async, new_task, cmd_exec, arg_parser
 from bot.helper.ext_utils.commons_check import UseCheck
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -184,7 +184,7 @@ class Clone(TaskListener):
                 drive_id = None
                 remote, src_path = self.link.split(':', 1)
                 src_path = src_path .strip('/')
-                cmd = ['gclone', 'lsjson', '--fast-list', '--stat', '--no-modtime', '--config', config_path, f'{remote}:{src_path}']
+                cmd = [GCLONE_NAME, 'lsjson', '--fast-list', '--stat', '--no-modtime', '--config', config_path, f'{remote}:{src_path}']
                 res = await cmd_exec(cmd)
                 if res[2] != 0:
                     if res[2] != -9:
@@ -214,9 +214,9 @@ class Clone(TaskListener):
                 return
 
             LOGGER.info('Cloning Done: %s', self.name)
-            cmd1 = ['gclone', 'lsf', '--fast-list', '-R', '--files-only', '--config', config_path, destination]
-            cmd2 = ['gclone', 'lsf', '--fast-list', '-R', '--dirs-only', '--config', config_path, destination]
-            cmd3 = ['gclone', 'size', '--fast-list', '--json', '--config', config_path, destination]
+            cmd1 = [GCLONE_NAME, 'lsf', '--fast-list', '-R', '--files-only', '--config', config_path, destination]
+            cmd2 = [GCLONE_NAME, 'lsf', '--fast-list', '-R', '--dirs-only', '--config', config_path, destination]
+            cmd3 = [GCLONE_NAME, 'size', '--fast-list', '--json', '--config', config_path, destination]
             res1, res2, res3 = await gather(cmd_exec(cmd1), cmd_exec(cmd2), cmd_exec(cmd3))
             if res1[2] != res2[2] != res3[2] != 0:
                 if res1[2] == -9:
