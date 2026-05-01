@@ -8,7 +8,7 @@ from json import loads
 from random import randrange
 from re import findall as re_findall
 
-from bot import config_dict, LOGGER, RCLONE_NAME
+from bot import config_dict, LOGGER, RCLONE_NAME, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import cmd_exec, sync_to_async
 from bot.helper.ext_utils.files_utils import get_mime_type, count_files_and_folders
 from bot.helper.listeners import tasks_listener as task
@@ -236,7 +236,7 @@ class RcloneTransferHelper:
                 destination = f'{oremote}:{rc_path}/{self._listener.name}'
             else:
                 destination = f'{oremote}:{self._listener.name}'
-            cmd = ['gclone', 'link', '--config', oconfig_path, destination]
+            cmd = [GCLONE_NAME, 'link', '--config', oconfig_path, destination]
             res, err, code = await cmd_exec(cmd)
             if code == 0:
                 link = res
@@ -307,7 +307,7 @@ class RcloneTransferHelper:
             return (None, None) if self._is_cancelled else (link, destination)
         if mime_type != 'Folder':
             destination += f'/{self._listener.name}' if dst_path else self._listener.name
-        cmd = ['gclone', 'link', '--config', config_path, destination]
+        cmd = [GCLONE_NAME, 'link', '--config', config_path, destination]
         res, err, code = await cmd_exec(cmd)
         if self._is_cancelled:
             return None, None
