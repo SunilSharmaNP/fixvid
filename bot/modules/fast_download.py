@@ -9,7 +9,7 @@ from pyrogram.types import Message
 from random import choice
 from requests import utils as rutils
 
-from bot import bot, config_dict
+from bot import bot, config_dict, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import sync_to_async, new_task, cmd_exec, arg_parser, is_premium_user
 from bot.helper.ext_utils.commons_check import UseCheck
 from bot.helper.ext_utils.links_utils import is_url, is_magnet, get_stream_link, get_link
@@ -89,7 +89,7 @@ class FastDL(TaskListener):
 
         self.editable = await sendMessage('⏳ <i>Checking your request, please wait...</i>', self.message)
         upload_path = config_dict['RCLONE_PATH']
-        rjson = await cmd_exec(['gclone', 'backend', 'addurl', '--config', 'rclone.conf', upload_path, self.link])
+        rjson = await cmd_exec([GCLONE_NAME, 'backend', 'addurl', '--config', 'rclone.conf', upload_path, self.link])
         if rjson[2] != 0:
             text = '🛑 <b>The server has been terminated!</b>' if "doesn't support backend" in rjson[1] else '❌ <b>Something went wrong, or invalid link!</b>'
             await editMessage(text, self.editable)
@@ -106,7 +106,7 @@ class FastDL(TaskListener):
             text += ('<b>┌ Status:</b> Complete\n'
                      f'<b>├ Size:</b> {get_readable_file_size(rjson.get("file_size"))}\n')
             url = f'{config_dict["RCLONE_SERVE_URL"]}/{url_path}/{rutils.quote(name)}'
-            typee = await cmd_exec(['gclone', 'lsjson', '--fast-list', '--stat', '--no-modtime', '--config', 'rclone.conf', f'{upload_path}/{name}'])
+            typee = await cmd_exec([GCLONE_NAME, 'lsjson', '--fast-list', '--stat', '--no-modtime', '--config', 'rclone.conf', f'{upload_path}/{name}'])
             res = loads(typee[0])
             if typee[2] == 0 and res['IsDir']:
                 url += '/'
