@@ -3,7 +3,7 @@ from asyncio import gather
 from json import loads
 from secrets import token_urlsafe
 
-from bot import task_dict, task_dict_lock, queue_dict_lock, non_queued_dl, LOGGER
+from bot import task_dict, task_dict_lock, queue_dict_lock, non_queued_dl, LOGGER, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import cmd_exec
 from bot.helper.ext_utils.status_utils import get_readable_file_size
 from bot.helper.ext_utils.task_manager import check_running_tasks, stop_duplicate_check, check_limits_size
@@ -27,8 +27,8 @@ async def add_rclone_download(listener: task.TaskListener, path: str):
         return
     listener.link = listener.link.strip('/')
 
-    cmd1 = ['gclone', 'lsjson', '--fast-list', '--stat', '--no-mimetype', '--no-modtime', '--config', config_path, f'{remote}:{listener.link}']
-    cmd2 = ['gclone', 'size', '--fast-list', '--json', '--config', config_path, f'{remote}:{listener.link}']
+    cmd1 = [GCLONE_NAME, 'lsjson', '--fast-list', '--stat', '--no-mimetype', '--no-modtime', '--config', config_path, f'{remote}:{listener.link}']
+    cmd2 = [GCLONE_NAME, 'size', '--fast-list', '--json', '--config', config_path, f'{remote}:{listener.link}']
     res1, res2 = await gather(cmd_exec(cmd1), cmd_exec(cmd2))
     if res1[2] or res2[2]:
         if res1[2] != -9:
