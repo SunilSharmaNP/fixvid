@@ -10,7 +10,7 @@ from pyrogram.handlers import CallbackQueryHandler
 from pyrogram.types import CallbackQuery
 from time import time
 
-from bot import config_dict, LOGGER
+from bot import config_dict, LOGGER, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import cmd_exec, new_thread, new_task, update_user_ldata
 from bot.helper.ext_utils.status_utils import get_readable_time, get_readable_file_size
 from bot.helper.listeners import tasks_listener as task
@@ -114,7 +114,7 @@ class RcloneList:
             self.item_type == itype
         elif self.list_status == 'rcu':
             self.item_type == '--dirs-only'
-        cmd = ['gclone', 'lsjson', self.item_type, '--fast-list', '--no-mimetype', '--no-modtime', '--config', self.config_path, f'{self.remote}{self.path}']
+        cmd = [GCLONE_NAME, 'lsjson', self.item_type, '--fast-list', '--no-mimetype', '--no-modtime', '--config', self.config_path, f'{self.remote}{self.path}']
         if self.is_cancelled:
             return
         res, err, code = await cmd_exec(cmd)
