@@ -13,6 +13,11 @@ from logging import getLogger, FileHandler, StreamHandler, basicConfig, INFO, ER
 from os import remove as osremove, path as ospath, environ, getcwd
 
 
+def _int_env(key, default):
+    val = environ.get(key, '')
+    return int(val.strip()) if val.strip() else default
+
+
 def _push_config_to_environ(mod):
     """Push UPPERCASE, non-empty, non-callable attrs of *mod* into os.environ.
 
@@ -285,12 +290,12 @@ CMD_SUFFIX = environ.get('CMD_SUFFIX', '')
 DATABASE_URL = environ.get('DATABASE_URL', 'mongodb+srv://hello:hello@cluster0.vc2htx0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 AUTO_THUMBNAIL = environ.get('AUTO_THUMBNAIL', 'True').lower() == 'true'
 PREMIUM_MODE = environ.get('PREMIUM_MODE', 'True').lower() == 'true'
-SESSION_TIMEOUT = int(environ.get('SESSION_TIMEOUT', 0))
+SESSION_TIMEOUT = _int_env('SESSION_TIMEOUT', 0)
 DAILY_MODE = environ.get('DAILY_MODE', 'False').lower() == 'true'
 MEDIA_GROUP = environ.get('MEDIA_GROUP', 'False').lower() == 'true'
 STOP_DUPLICATE = environ.get('STOP_DUPLICATE', 'True').lower() == 'true'
 IS_TEAM_DRIVE = environ.get('IS_TEAM_DRIVE', 'True').lower() == 'true'
-MULTI_TIMEGAP = int(environ.get('MULTI_TIMEGAP', 5))
+MULTI_TIMEGAP = _int_env('MULTI_TIMEGAP', 5)
 AS_DOCUMENT = environ.get('AS_DOCUMENT', 'False').lower() == 'true'
 SAVE_MESSAGE = environ.get('SAVE_MESSAGE', 'True').lower() == 'true'
 LEECH_FILENAME_PREFIX = environ.get('LEECH_FILENAME_PREFIX', '')
@@ -298,11 +303,11 @@ LEECH_INFO_PIN = environ.get('LEECH_INFO_PIN', 'False').lower() == 'true'
 USER_SESSION_STRING = environ.get('USER_SESSION_STRING', '')
 SAVE_SESSION_STRING = environ.get('SAVE_SESSION_STRING', '')
 USERBOT_LEECH = environ.get('USERBOT_LEECH', 'False').lower() == 'true'
-AUTO_DELETE_MESSAGE_DURATION = int(environ.get('AUTO_DELETE_MESSAGE_DURATION', 30))
-AUTO_DELETE_UPLOAD_MESSAGE_DURATION = int(environ.get('AUTO_DELETE_UPLOAD_MESSAGE_DURATION', 30))
-STATUS_UPDATE_INTERVAL = int(environ.get('STATUS_UPDATE_INTERVAL', 5))
+AUTO_DELETE_MESSAGE_DURATION = _int_env('AUTO_DELETE_MESSAGE_DURATION', 30)
+AUTO_DELETE_UPLOAD_MESSAGE_DURATION = _int_env('AUTO_DELETE_UPLOAD_MESSAGE_DURATION', 30)
+STATUS_UPDATE_INTERVAL = _int_env('STATUS_UPDATE_INTERVAL', 5)
 YT_DLP_OPTIONS = environ.get('YT_DLP_OPTIONS', '')
-DAILY_LIMIT_SIZE = int(environ.get('DAILY_LIMIT_SIZE', 50))
+DAILY_LIMIT_SIZE = _int_env('DAILY_LIMIT_SIZE', 50)
 COMPRESS_BANNER = environ.get('COMPRESS_BANNER', 'Re-Encoded')
 LIB264_PRESET = environ.get('LIB264_PRESET', 'superfast')
 LIB265_PRESET = environ.get('LIB265_PRESET', 'faster')
@@ -321,7 +326,7 @@ RCLONE_SERVE_URL = environ.get('RCLONE_SERVE_URL', '').rstrip('/')
 RCLONE_SERVE_PORT = environ.get('RCLONE_SERVE_PORT', '')
 RCLONE_SERVE_USER = environ.get('RCLONE_SERVE_USER', '')
 RCLONE_SERVE_PASS = environ.get('RCLONE_SERVE_PASS', '')
-RCLONE_TFSIMULATION = int(environ.get('RCLONE_TFSIMULATION', '8'))
+RCLONE_TFSIMULATION = _int_env('RCLONE_TFSIMULATION', 8)
 # ======================================================================
                 
             
@@ -408,12 +413,12 @@ if GOFILE:
 FORCE_SHORTEN = environ.get('FORCE_SHORTEN', 'False').lower() == 'true'
 AUTO_MUTE = environ.get('AUTO_MUTE', 'False').lower() == 'true'
 MUTE_CHAT_ID = "-1001963446260"
-AUTO_MUTE_DURATION = int(environ.get('AUTO_MUTE_DURATION', 30))
+AUTO_MUTE_DURATION = _int_env('AUTO_MUTE_DURATION', 30)
 # Username
 FUSERNAME = environ.get('FUSERNAME', 'False').lower() == 'true'
 # Subscribe
 FSUB = environ.get('FSUB', 'False').lower() == 'true'
-#FSUB_CHANNEL_ID = int(environ.get('FSUB_CHANNEL_ID', ''))
+#FSUB_CHANNEL_ID = _int_env('FSUB_CHANNEL_ID', '')
 FSUB_BUTTON_NAME = environ.get('FSUB_BUTTON_NAME', 'Join Channel')
 CHANNEL_USERNAME = environ.get('CHANNEL_USERNAME', 'hexafreinds')
 # ======================================================================
@@ -424,7 +429,7 @@ STICKERID_COUNT = environ.get('STICKERID_COUNT', 'CAACAgQAAxkBAAKE5GcY_waybDI9-O
 STICKERID_ERROR = environ.get('STICKERID_ERROR', 'CAACAgUAAxkBAAKE0mcY-4dK5n6f6g48N9Ewan6EwvqzAAKiBwACo5GpVIbD3xPwDzqSNgQ')
 STICKERID_LEECH = environ.get('STICKERID_LEECH', 'CAACAgQAAxkBAAKE4WcY_ZUB7seTjXokfngVI1d-8rOnAAKxGgACIPZSDOnpobqbU-_dNgQ')
 STICKERID_MIRROR = environ.get('STICKERID_MIRROR', 'CAACAgUAAxkBAAKE3mcY_RIiOQABU057pFcXzGirQawrNwACXQ8AAhNcSFbQs6XZtrORmzYE')
-STICKER_DELETE_DURATION = int(environ.get('STICKER_DELETE_DURATION', 120))
+STICKER_DELETE_DURATION = _int_env('STICKER_DELETE_DURATION', 120)
 # ======================================================================
 
 
@@ -561,7 +566,7 @@ RSS_DELAY = int(RSS_DELAY) if RSS_DELAY else 900
 
 
 # ============================ TORSEARCH ===============================
-SEARCH_LIMIT = int(environ.get('SEARCH_LIMIT', 20))
+SEARCH_LIMIT = _int_env('SEARCH_LIMIT', 20)
 SEARCH_API_LINK = environ.get('SEARCH_API_LINK', '').rstrip('/')
 SEARCH_PLUGINS = environ.get('SEARCH_PLUGINS', '')
 # ======================================================================
