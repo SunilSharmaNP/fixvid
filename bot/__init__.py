@@ -140,6 +140,7 @@ ARIA_NAME = environ.get('ARIA_NAME', 'blitzfetcher')
 QBIT_NAME = environ.get('QBIT_NAME', 'stormtorrent')
 FFMPEG_NAME = environ.get('FFMPEG_NAME', 'mediaforge')
 RCLONE_NAME = environ.get('RCLONE_NAME', 'ghostdrive')
+GCLONE_NAME = environ.get('GCLONE_NAME', 'gclone')
 SABNZBD_NAME = environ.get('SABNZBD_NAME', 'newsripper')
 
 # ============================ REQUIRED ================================
