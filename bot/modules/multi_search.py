@@ -12,7 +12,7 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from pyrogram.types import Message, CallbackQuery
 from time import time
 
-from bot import bot, bot_dict, bot_lock, config_dict, user_data, LOGGER
+from bot import bot, bot_dict, bot_lock, config_dict, user_data, LOGGER, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import sync_to_async, new_task, new_thread, cmd_exec
 from bot.helper.ext_utils.commons_check import UseCheck
 from bot.helper.ext_utils.conf_loads import intialize_savebot
@@ -119,7 +119,7 @@ class MultiSerach:
                 for remote in config.sections():
                     isdir = self.type == 'folders'
                     typee = '--dirs-only' if isdir else '--files-only'
-                    cmd = ['gclone', 'lsjson', typee, '--fast-list', '--no-modtime', '--ignore-case', '-R', '--include', f'*{self.query}*', '--config', self.config_path, f'{remote}:']
+                    cmd = [GCLONE_NAME, 'lsjson', typee, '--fast-list', '--no-modtime', '--ignore-case', '-R', '--include', f'*{self.query}*', '--config', self.config_path, f'{remote}:']
                     out, _, code = await cmd_exec(cmd)
                     contents = []
                     if code == 0:
@@ -130,7 +130,7 @@ class MultiSerach:
                                 name, size, mime, msg = file['Name'], file['Size'], file['MimeType'], ''
                                 if isdir and self.query.lower() not in name.lower():
                                     continue
-                                cmd = ['gclone', 'link',  '--config', self.config_path, f'{remote}:{file["Path"]}']
+                                cmd = [GCLONE_NAME, 'link',  '--config', self.config_path, f'{remote}:{file["Path"]}']
                                 link, _, code = await cmd_exec(cmd)
                                 number = str(index).zfill(3)
                                 if code == 0:
