@@ -3,7 +3,7 @@ from aiofiles.os import path as aiopath
 from asyncio import create_subprocess_exec
 from configparser import ConfigParser
 
-from bot import config_dict, LOGGER
+from bot import config_dict, LOGGER, GCLONE_NAME
 
 
 RcloneServe = []
@@ -36,7 +36,7 @@ async def rclone_serve_booter():
             RcloneServe.clear()
         except:
             pass
-    cmd = ['gclone', 'serve', 'http', '--config', 'rclone.conf', 'combine:', '--addr', f':{RCLONE_SERVE_PORT}',
+    cmd = [GCLONE_NAME, 'serve', 'http', '--config', 'rclone.conf', 'combine:', '--addr', f':{RCLONE_SERVE_PORT}',
            '--vfs-cache-mode', 'full', '--vfs-cache-max-age', '1m0s', '--buffer-size', '64M']
     if (user := config_dict['RCLONE_SERVE_USER']) and (pswd := config_dict['RCLONE_SERVE_PASS']):
         cmd.extend(('--user', user, '--pass', pswd))
