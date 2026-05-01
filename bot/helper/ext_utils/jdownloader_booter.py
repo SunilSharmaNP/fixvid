@@ -51,7 +51,7 @@ class JDownloader(MyJdApi):
         with open(jdsetpath, 'w') as sf, open(jdffpath, 'w') as ff:
             sf.truncate(0), ff.truncate(0)
             dump(jdata, sf), dump(ffdata, ff)
-        cmd = 'java -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Djava.awt.headless=true -jar /JDownloader/JDownloader.jar'
+        cmd = 'cpulimit -l 20 -- java -Xms256m -Xmx500m -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Djava.awt.headless=true -jar /JDownloader/JDownloader.jar'
         _, stdrerr, code = await cmd_exec(cmd, shell=True)
         if code != -9:
             if retry < 10:
