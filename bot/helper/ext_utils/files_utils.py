@@ -8,7 +8,7 @@ from re import split as re_split, search as re_search, escape, I
 from subprocess import run as srun
 from sys import exit as sexit
 
-from bot import aria2, config_dict, get_client, DOWNLOAD_DIR, LOGGER, ARIA_NAME, QBIT_NAME, FFMPEG_NAME
+from bot import aria2, config_dict, get_client, DOWNLOAD_DIR, LOGGER, ARIA_NAME, QBIT_NAME, FFMPEG_NAME, GCLONE_NAME
 from bot.helper.ext_utils.bot_utils import sync_to_async, async_to_sync, cmd_exec
 from bot.helper.ext_utils.exceptions import NotSupportedExtractionArchive
 
@@ -67,7 +67,7 @@ def exit_clean_up(_, __):
     try:
         LOGGER.info('Please wait, while we clean up and stop the running downloads')
         clean_all()
-        srun(['pkill', '-9', '-f', f'gunicorn|{ARIA_NAME}|{QBIT_NAME}|{FFMPEG_NAME}|gclone|java|alass'], check=True)
+        srun(['pkill', '-9', '-f', f'gunicorn|{ARIA_NAME}|{QBIT_NAME}|{FFMPEG_NAME}|{GCLONE_NAME}|java|alass'], check=True)
         sexit(0)
     except KeyboardInterrupt:
         LOGGER.warning('Force Exiting before the cleanup finishes!')
